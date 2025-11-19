@@ -20,10 +20,10 @@
 </header>
 
 <main class="container">
-  <section class="card form-card" id="mainForm">
+  <section class="card form-card" id="mainForm" aria-label="Add job form">
     <div class="row">
       <div class="col">
-        <label>Field ID</label>
+        <label>Field (ID)</label>
         <input id="fieldId" placeholder="r-07" autocomplete="off">
       </div>
       <div class="col small">
@@ -31,9 +31,10 @@
         <input id="fieldHa" placeholder="ha" type="number" step="0.01" min="0">
       </div>
     </div>
+
     <div class="row">
       <div class="col">
-        <label>Fert Blend</label>
+        <label>Fert Blend / Product</label>
         <input id="blend" placeholder="TROPICOTE" autocomplete="off">
       </div>
       <div class="col small">
@@ -41,6 +42,7 @@
         <input id="rate" type="number" step="0.01" min="0" value="250">
       </div>
     </div>
+
     <div class="row">
       <div class="col wide">
         <label>Total kg (auto)</label>
@@ -53,9 +55,16 @@
   </section>
 
   <section class="card table-card" id="tableCard">
-    <table id="fieldsTable" class="full">
+    <table id="fieldsTable" class="full" aria-label="Jobs table">
       <thead>
-        <tr><th>Field</th><th>Blend</th><th>Rate</th><th>Size</th><th>Total</th><th></th></tr>
+        <tr>
+          <th>Field</th>
+          <th>Blend</th>
+          <th>Rate<br><small>(kg/ha)</small></th>
+          <th>Size<br><small>(ha)</small></th>
+          <th>Total<br><small>(kg)</small></th>
+          <th class="actions-col-head"></th>
+        </tr>
       </thead>
       <tbody></tbody>
     </table>
@@ -67,7 +76,7 @@
     <div class="right">Total kg: <span id="totalKg">0.00</span> kg</div>
   </section>
 
-  <section class="card day-card">
+  <section class="card day-card" id="dayCard">
     <label>Date</label>
     <div class="date-row">
       <button id="prevDay" class="btn small">← Prev</button>
