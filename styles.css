@@ -1,7 +1,14 @@
-/* Light-blue iOS-style theme - mobile first */
-:root{ --blue:#eef7fb; --accent:#2d8cff; --yellow:#ffd965; --text:#0b2545; --muted:#6b7280; --danger:#e74c3c; --card-shadow: 0 6px 12px rgba(12,38,63,0.04); }
+/* styles.css - app + print rules (yellow printable report) */
+:root{
+  --blue:#eef7fb;
+  --accent:#2d8cff;
+  --yellow:#ffd965;
+  --text:#0b2545;
+  --muted:#6b7280;
+  --card-shadow: 0 6px 12px rgba(12,38,63,0.04);
+}
 *{box-sizing:border-box}
-body{margin:0;font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;color:var(--text);background:var(--blue);-webkit-font-smoothing:antialiased}
+body{margin:0;font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, Arial;color:var(--text);background:var(--blue);-webkit-font-smoothing:antialiased}
 .app-header{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:linear-gradient(#eaf6ff,#dff3ff);border-bottom:1px solid rgba(0,0,0,0.05)}
 .app-header h1{margin:0;font-size:18px}
 .icon-btn{background:#fff;border:1px solid rgba(0,0,0,0.06);padding:8px;border-radius:8px}
@@ -28,9 +35,40 @@ input[readonly]{background:#f7fafc;color:var(--muted)}
 .summary-row{display:flex;justify-content:space-between;padding:6px 0 20px;color:var(--text);font-weight:700;margin-bottom:10px}
 .day-card .date-row{display:flex;gap:8px;align-items:center;margin-top:8px}
 .day-actions{margin-top:10px;display:flex;gap:8px}
+
+/* ----------------- Report styles ----------------- */
 .report-page{padding:18px;background:#fff}
-.report-header{background:var(--yellow);padding:12px;border-radius:6px;margin-bottom:12px;text-align:center;font-weight:700}
-.report-table{width:100%;border-collapse:collapse}
-.report-table thead .yellow{background:var(--yellow);font-weight:800}
-.report-table tbody td{padding:10px;border-bottom:1px solid rgba(0,0,0,0.03)}
-@media(min-width:900px){ .container{padding:28px} }
+.report-header{background:var(--yellow);padding:18px;border-radius:8px;margin-bottom:12px;text-align:center;font-weight:800}
+.report-header h1{margin:0;font-size:28px}
+.report-table{width:100%;border-collapse:collapse;font-size:12px}
+.report-table thead .report-head-row th{background:var(--yellow);padding:10px 8px;font-weight:800;border-bottom:2px solid rgba(0,0,0,0.06)}
+.report-table tbody td{padding:8px 6px;border-bottom:1px solid rgba(0,0,0,0.03)}
+.report-table tfoot td{padding:10px 8px;font-weight:700}
+
+/* compact rows for printing / screenshots */
+.report-table tbody tr{height:22px}
+
+/* optimize for mobile landscape screenshot: limit margins */
+@media (max-width:420px){
+  .container{padding:10px}
+  .form-card .row{flex-direction:column}
+  .col.small{flex:1}
+}
+
+/* ----------------- Print rules (hide UI, compact table) ----------------- */
+@media print{
+  body{background:#fff;color:#000}
+  .app-header, .card, .btn, .icon-btn, .tabs, .date-row, .day-actions, .actions-col, .summary-row, #menuBtn { display: none !important; }
+  .report-header{display:block}
+  main{margin:0;padding:0}
+  .report-table thead .report-head-row th{background:var(--yellow);-webkit-print-color-adjust:exact}
+  .report-table tbody td{padding:6px 6px;font-size:11px}
+  .report-table tbody tr{height:20px}
+  .report-table{page-break-inside:avoid}
+  @page { margin:10mm 8mm; }
+}
+
+/* ensure printable yellow shows in print */
+@media print{
+  .report-header{background:var(--yellow);-webkit-print-color-adjust: exact;}
+}
