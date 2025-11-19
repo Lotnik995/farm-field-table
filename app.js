@@ -1,7 +1,9 @@
-// app.js - main page logic
+
+// app.js - main page logic (live auto-calc, per-day localStorage, export, open printable report)
 (function(){
   const qs = s => document.querySelector(s);
   const today = ()=> new Date().toISOString().slice(0,10);
+
   const dateInput = qs('#recordDate');
   const prevBtn = qs('#prevDay'), nextBtn = qs('#nextDay');
   const addRowBtn = qs('#addRow');
@@ -27,7 +29,12 @@
     fieldsTable.innerHTML = '';
     rows.forEach((r, idx)=>{
       const tr = document.createElement('tr');
-      tr.innerHTML = `<td>${escapeHtml(r.field)}</td><td>${escapeHtml(r.blend)}</td><td>${Number(r.rate)||0}</td><td>${Number(r.ha)||0}</td><td>${Number(r.kg)||0}</td><td><button class="btn small edit" data-i="${idx}">Edit</button> <button class="btn small danger del" data-i="${idx}">Delete</button></td>`;
+      tr.innerHTML = `<td>${escapeHtml(r.field)}</td>`
+                   + `<td>${escapeHtml(r.blend)}</td>`
+                   + `<td>${Number(r.rate||0).toLocaleString()}</td>`
+                   + `<td>${Number(r.ha||0).toLocaleString()}</td>`
+                   + `<td>${Number(r.kg||0).toLocaleString()}</td>`
+                   + `<td><button class="btn small edit" data-i="${idx}">Edit</button> <button class="btn small danger del" data-i="${idx}">Delete</button></td>`;
       fieldsTable.appendChild(tr);
     });
     updateSummary(rows);
@@ -45,7 +52,7 @@
       rateInput.value = r.rate || '';
       fieldHaInput.value = r.ha || '';
       autoKgInput.value = r.kg || '';
-      // remove from list until saved (so edit replaces)
+      // remove from list until saved (so edit will replace)
       rows.splice(i,1);
       saveRows(rows);
       renderRows(rows);
@@ -114,8 +121,8 @@
   exportDayBtn.addEventListener('click', ()=>{
     const rows = getRows();
     if(!rows.length){ alert('No rows for this date'); return; }
-    let csv = 'Field,Blend,Rate,Ha,Kg\\n';
-    rows.forEach(r=> csv += `"${r.field}", "${r.blend}", ${r.rate}, ${r.ha}, ${r.kg}\\n`);
+    let csv = 'Field,Blend,Rate (kg/ha),Ha,Kg\n';
+    rows.forEach(r=> csv += `"${r.field}","${r.blend}",${r.rate},${r.ha},${r.kg}\n`);
     const blob = new Blob([csv], {type:'text/csv'});
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
