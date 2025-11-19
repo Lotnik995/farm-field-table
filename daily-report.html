@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Daily Report</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header>Daily Report</header>
+
+<div class="date-bar">
+  <button id="prevDay">◀</button>
+  <span id="currentDate"></span>
+  <button id="nextDay">▶</button>
+</div>
+
+<table id="reportTable">
+  <thead>
+    <tr>
+      <th>Field</th><th>Blend</th><th>Rate</th><th>Ha</th><th>Total</th><th>Actions</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+
+<div class="totals">
+  <span id="sumHa"></span>
+  <span id="sumKg"></span>
+</div>
+
+<button onclick="window.print()">Print</button>
+
+<script src="app.js"></script>
+</body>
+</html>

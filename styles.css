@@ -1,0 +1,11 @@
+body { font-family: sans-serif; padding: 10px; }
+header { font-size: 24px; background:#4aa3ff; padding:10px; color:white; text-align:center; }
+.form-block input { display:block; width:100%; margin:6px 0; padding:8px; }
+button { padding:8px 12px; margin:4px 0; }
+table { width:100%; border-collapse: collapse; margin-top:15px; }
+th, td { border:1px solid #ccc; padding:6px; font-size:14px; }
+.date-bar { display:flex; justify-content:center; gap:10px; margin:10px 0; }
+@media print {
+  button, .date-bar { display:none; }
+  header { background:none; color:black; }
+}

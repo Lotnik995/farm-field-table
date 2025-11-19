@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Farm Job Entry</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header>Farm Job Entry</header>
+
+<div class="date-bar">
+  <button id="prevDay">◀</button>
+  <span id="currentDate"></span>
+  <button id="nextDay">▶</button>
+</div>
+
+<div class="form-block">
+  <input id="field" placeholder="Field ID">
+  <input id="size" type="number" step="0.01" placeholder="Size (ha)">
+  <input id="blend" placeholder="Blend">
+  <input id="rate" type="number" step="0.1" placeholder="Rate (kg/ha)">
+  <input id="total" placeholder="Total kg" disabled>
+  <button id="saveJob">Save Job</button>
+</div>
+
+<a class="link" href="daily-report.html">Open Daily Report</a>
+
+<script src="app.js"></script>
+</body>
+</html>
