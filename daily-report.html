@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Daily Report — Printable</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body class="report-page">
+<header class="report-header">
+  <h1>Daily Report</h1>
+  <div id="reportDate" class="report-date"></div>
+</header>
+<main class="report-main">
+  <table id="reportTable" class="report-table">
+    <thead>
+      <tr class="yellow"><th>FIELD</th><th>BLEND</th><th>RATE</th><th>SIZE</th><th>TOTAL</th></tr>
+    </thead>
+    <tbody></tbody>
+    <tfoot>
+      <tr><td colspan="3">Totals</td><td id="rTotalHa">0 ha</td><td id="rTotalKg">0 kg</td></tr>
+    </tfoot>
+  </table>
+</main>
+<script>
+(function(){
+  const qs = s => document.querySelector(s);
+  const params = new URLSearchParams(location.search);
+  const date = params.get('date') || new Date().toISOString().slice(0,10);
+  qs('#reportDate').textContent = date.split('-').reverse().join('/');
+  const key = 'farm_jobs_'+date;
+  const raw = localStorage.getItem(key);
+  const rows = raw ? JSON.parse(raw) : [];
+  const tbody = qs('#reportTable tbody');
+  let totalHa=0, totalKg=0;
+  rows.forEach((r,i)=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${r.field||''}</td><td>${r.blend||''}</td><td>${Number(r.rate)||0}</td><td>${Number(r.ha)||0}</td><td>${Number(r.kg)||0}</td>`;
+    tbody.appendChild(tr);
+    totalHa += Number(r.ha)||0;
+    totalKg += Number(r.kg)||0;
+  });
+  qs('#rTotalHa').textContent = (Math.round(totalHa*100)/100)+' ha';
+  qs('#rTotalKg').textContent = (Math.round(totalKg*100)/100)+' kg';
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<title>Farm Field Table</title>
+<link rel="stylesheet" href="styles.css">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#3aa0ff">
+</head>
+<body>
+<header class="app-header">
+  <button id="menuBtn" class="icon-btn" aria-label="menu">☰</button>
+  <h1>Farm Field Table</h1>
+  <nav class="tabs">
+    <button id="tabMain" class="tab active">Main Table</button>
+    <button id="tabDaily" class="tab">Daily Work</button>
+    <button id="tabReport" class="tab">Daily Report</button>
+  </nav>
+</header>
+
+<main class="container">
+  <section class="card form-card" id="mainForm">
+    <div class="row">
+      <div class="col">
+        <label>Field ID</label>
+        <input id="fieldId" placeholder="r-07" autocomplete="off">
+      </div>
+      <div class="col small">
+        <label>Field Size (ha)</label>
+        <input id="fieldHa" placeholder="ha" type="number" step="0.01" min="0">
+      </div>
+    </div>
+    <div class="row">
+      <div class="col">
+        <label>Fert Blend</label>
+        <input id="blend" placeholder="TROPICOTE" autocomplete="off">
+      </div>
+      <div class="col small">
+        <label>Rate (kg/ha)</label>
+        <input id="rate" type="number" step="0.01" min="0" value="250">
+      </div>
+    </div>
+    <div class="row">
+      <div class="col wide">
+        <label>Total kg (auto)</label>
+        <input id="autoKg" placeholder="auto" readonly>
+      </div>
+      <div class="col actions-col">
+        <button id="addRow" class="btn primary">Add Row</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="card table-card" id="tableCard">
+    <table id="fieldsTable" class="full">
+      <thead>
+        <tr><th>Field</th><th>Blend</th><th>Rate</th><th>Size</th><th>Total</th><th></th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </section>
+
+  <section class="summary-row">
+    <div class="left">Jobs: <span id="jobsCount">0</span></div>
+    <div class="center">Total area: <span id="totalArea">0.00</span> ha</div>
+    <div class="right">Total kg: <span id="totalKg">0.00</span> kg</div>
+  </section>
+
+  <section class="card day-card">
+    <label>Date</label>
+    <div class="date-row">
+      <button id="prevDay" class="btn small">← Prev</button>
+      <input type="date" id="recordDate">
+      <button id="nextDay" class="btn small">Next →</button>
+    </div>
+    <div class="day-actions">
+      <button id="exportDay" class="btn">Export Day CSV</button>
+      <button id="openFull" class="btn primary">Open Full Day View</button>
+    </div>
+  </section>
+</main>
+
+<script src="app.js"></script>
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('service-worker.js').catch(()=>{});
+}
+</script>
+</body>
+</html>
