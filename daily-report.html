@@ -7,41 +7,67 @@
 <link rel="stylesheet" href="styles.css">
 </head>
 <body class="report-page">
-<header class="report-header">
+<header class="report-header print-only-header">
   <h1>Daily Report</h1>
   <div id="reportDate" class="report-date"></div>
 </header>
+
 <main class="report-main">
+  <div class="report-meta">
+    <!-- optional metadata area for operator/machine -->
+    <div id="metaLine"></div>
+  </div>
   <table id="reportTable" class="report-table">
     <thead>
-      <tr class="yellow"><th>FIELD</th><th>BLEND</th><th>RATE</th><th>SIZE</th><th>TOTAL</th></tr>
+      <tr class="report-head-row">
+        <th>FIELD</th>
+        <th>BLEND</th>
+        <th>RATE<br><small>(kg/ha)</small></th>
+        <th>SIZE<br><small>(ha)</small></th>
+        <th>TOTAL<br><small>(kg)</small></th>
+      </tr>
     </thead>
     <tbody></tbody>
     <tfoot>
-      <tr><td colspan="3">Totals</td><td id="rTotalHa">0 ha</td><td id="rTotalKg">0 kg</td></tr>
+      <tr>
+        <td colspan="2">Totals</td>
+        <td></td>
+        <td id="rTotalHa">0 ha</td>
+        <td id="rTotalKg">0 kg</td>
+      </tr>
     </tfoot>
   </table>
 </main>
+
 <script>
 (function(){
   const qs = s => document.querySelector(s);
   const params = new URLSearchParams(location.search);
   const date = params.get('date') || new Date().toISOString().slice(0,10);
   qs('#reportDate').textContent = date.split('-').reverse().join('/');
-  const key = 'farm_jobs_'+date;
+  const key = 'farm_jobs_' + date;
   const raw = localStorage.getItem(key);
   const rows = raw ? JSON.parse(raw) : [];
   const tbody = qs('#reportTable tbody');
-  let totalHa=0, totalKg=0;
-  rows.forEach((r,i)=>{
+  let totalHa = 0, totalKg = 0;
+
+  // render compact rows
+  rows.forEach((r) => {
     const tr = document.createElement('tr');
-    tr.innerHTML = `<td>${r.field||''}</td><td>${r.blend||''}</td><td>${Number(r.rate)||0}</td><td>${Number(r.ha)||0}</td><td>${Number(r.kg)||0}</td>`;
+    tr.innerHTML = '<td>'+escapeHtml(r.field)+'</td>'
+                 + '<td>'+escapeHtml(r.blend)+'</td>'
+                 + '<td>'+Number(r.rate||0).toLocaleString()+'</td>'
+                 + '<td>'+Number(r.ha||0).toLocaleString()+'</td>'
+                 + '<td>'+Number(r.kg||0).toLocaleString()+'</td>';
     tbody.appendChild(tr);
     totalHa += Number(r.ha)||0;
     totalKg += Number(r.kg)||0;
   });
-  qs('#rTotalHa').textContent = (Math.round(totalHa*100)/100)+' ha';
-  qs('#rTotalKg').textContent = (Math.round(totalKg*100)/100)+' kg';
+
+  qs('#rTotalHa').textContent = (Math.round(totalHa*100)/100).toFixed(2) + ' ha';
+  qs('#rTotalKg').textContent = (Math.round(totalKg*100)/100).toFixed(2) + ' kg';
+
+  function escapeHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 })();
 </script>
 </body>
