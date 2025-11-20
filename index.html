@@ -1,30 +1,33 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Farm Job Entry</title>
-  <link rel="stylesheet" href="styles.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Farm Job Entry</title>
+<link rel="stylesheet" href="style.css">
+<script defer src="script.js"></script>
 </head>
 <body>
-<header>Farm Job Entry</header>
 
-<div class="date-bar">
-  <button id="prevDay">◀</button>
-  <span id="currentDate"></span>
-  <button id="nextDay">▶</button>
+<h2 class="header">Farm Job Entry</h2>
+
+<div class="date-row">
+    <button onclick="changeDate(-1)">◀</button>
+    <span id="currentDate"></span>
+    <button onclick="changeDate(1)">▶</button>
 </div>
 
-<div class="form-block">
-  <input id="field" placeholder="Field ID">
-  <input id="size" type="number" step="0.01" placeholder="Size (ha)">
-  <input id="blend" placeholder="Blend">
-  <input id="rate" type="number" step="0.1" placeholder="Rate (kg/ha)">
-  <input id="total" placeholder="Total kg" disabled>
-  <button id="saveJob">Save Job</button>
+<div class="form">
+    <input id="field" placeholder="Field ID">
+    <input id="size" type="number" step="0.01" placeholder="Ha">
+    <input id="blend" placeholder="Blend / Product">
+    <input id="rate" type="number" step="1" placeholder="Rate kg/ha">
+    <div id="totalkg" class="auto">Total kg: 0</div>
+
+    <button class="save" onclick="saveJob()">Save Job</button>
 </div>
 
-<a class="link" href="daily-report.html">Open Daily Report</a>
+<a class="link" href="report.html">Open Daily Report</a>
 
-<script src="app.js"></script>
 </body>
 </html>
