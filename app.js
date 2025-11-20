@@ -1,94 +1,178 @@
-function getDateKey(d){return d.toISOString().split('T')[0];}
+// app.js — localStorage per date app (key: farm_jobs_YYYY-MM-DD)
+// Keeps field/blend/rate persistent; clears ha & total after save.
+// Daily report supports edit (inline via prompt), delete, print, export.
 
-function loadJobs(dateKey){
-  return JSON.parse(localStorage.getItem('jobs_'+dateKey) || '[]');
-}
+const qs = s => document.querySelector(s);
+const today = () => new Date().toISOString().slice(0,10);
+const keyFor = d => 'farm_jobs_' + d;
 
-function saveJobs(dateKey, jobs){
-  localStorage.setItem('jobs_'+dateKey, JSON.stringify(jobs));
-}
+// ---- Shared helpers ----
+function formatDateInput(el, d) { el.value = d || today(); }
+function parseFloatSafe(v){ return Math.round((Number(v)||0)*100)/100; }
 
-function setupMain(){
-  if(!document.getElementById('saveJob')) return;
+// ---- Main page logic ----
+function initMain() {
+  const field = qs('#field'), ha = qs('#ha'), blend = qs('#blend'), rate = qs('#rate'), totalKg = qs('#totalKg');
+  const saveBtn = qs('#saveBtn'), recordDate = qs('#recordDate');
+  const prev = qs('#prevDay'), next = qs('#nextDay'), openReport = qs('#openReport'), exportDay = qs('#exportDay');
 
-  let current = new Date();
-  const cd = document.getElementById('currentDate');
-  const updateDate = ()=>{ cd.textContent = getDateKey(current); };
-  updateDate();
+  // init date
+  formatDateInput(recordDate, today());
 
-  document.getElementById('prevDay').onclick=()=>{current.setDate(current.getDate()-1);updateDate();};
-  document.getElementById('nextDay').onclick=()=>{current.setDate(current.getDate()+1);updateDate();};
+  // live calc
+  function recalc(){
+    const k = parseFloatSafe(ha.value) * parseFloatSafe(rate.value);
+    totalKg.value = k ? k.toFixed(2) : '';
+  }
+  ha.addEventListener('input', recalc);
+  rate.addEventListener('input', recalc);
 
-  const size = document.getElementById('size');
-  const rate = document.getElementById('rate');
-  const total = document.getElementById('total');
-  function calc(){ total.value = (parseFloat(size.value||0)*parseFloat(rate.value||0)).toFixed(1); }
-  size.oninput=rate.oninput=calc;
-
-  document.getElementById('saveJob').onclick=()=>{
-    calc();
-    const job={
-      field:field.value,
-      size:parseFloat(size.value||0),
-      blend:blend.value,
-      rate:parseFloat(rate.value||0),
-      total:parseFloat(total.value||0)
+  // save job (silent save)
+  saveBtn.addEventListener('click', ()=>{
+    const d = recordDate.value || today();
+    const rows = JSON.parse(localStorage.getItem(keyFor(d)) || '[]');
+    const job = {
+      field: (field.value||'').trim(),
+      blend: (blend.value||'').trim(),
+      rate: parseFloatSafe(rate.value),
+      ha: parseFloatSafe(ha.value),
+      kg: parseFloatSafe(totalKg.value)
     };
-    let key=getDateKey(current);
-    let jobs=loadJobs(key);
-    jobs.push(job);
-    saveJobs(key,jobs);
-    field.value=''; size.value=''; blend.value=''; rate.value=''; total.value='';
-    alert('Saved');
-  };
+    rows.push(job);
+    localStorage.setItem(keyFor(d), JSON.stringify(rows));
+    // clear only ha & total; keep field, blend, rate
+    ha.value = ''; totalKg.value = '';
+    // small visual feedback
+    const old = saveBtn.textContent;
+    saveBtn.textContent = 'Saved ✓';
+    setTimeout(()=> saveBtn.textContent = old, 900);
+  });
+
+  prev.addEventListener('click', ()=> shiftDate(recordDate, -1));
+  next.addEventListener('click', ()=> shiftDate(recordDate, 1));
+
+  openReport.addEventListener('click', ()=> {
+    const d = recordDate.value || today();
+    location.href = 'daily.html?date=' + d;
+  });
+
+  exportDay.addEventListener('click', ()=> {
+    const d = recordDate.value || today();
+    exportCSVForDate(d);
+  });
 }
 
-function setupReport(){
-  if(!document.getElementById('reportTable')) return;
+// ---- Daily report logic ----
+function initReport() {
+  const tbody = qs('#reportTable tbody');
+  const reportDate = qs('#reportDate'), rPrev = qs('#rPrev'), rNext = qs('#rNext');
+  const printBtn = qs('#printBtn'), exportBtn = qs('#exportBtn');
+  const totalHaEl = qs('#totalHa'), totalKgEl = qs('#totalKg');
 
-  let current = new Date();
-  const cd = document.getElementById('currentDate');
-  const tbody = document.querySelector('#reportTable tbody');
-  const sumHa = document.getElementById('sumHa');
-  const sumKg = document.getElementById('sumKg');
+  // find date param or default to today
+  const params = new URLSearchParams(location.search);
+  let date = params.get('date') || today();
+  const rDateInput = qs('#reportDate');
+  function loadDate(d){
+    date = d;
+    if (rDateInput) rDateInput.value = d;
+    if (reportDate) reportDate.textContent = d.split('-').reverse().join('/');
+    render();
+  }
+  if (rDateInput) rDateInput.addEventListener('change', ()=> loadDate(rDateInput.value));
+  if (rPrev) rPrev.addEventListener('click', ()=> shiftDate(rDateInput, -1));
+  if (rNext) rNext.addEventListener('click', ()=> shiftDate(rDateInput, 1));
 
-  const updateDate=()=>{cd.textContent=getDateKey(current); load();};
-  document.getElementById('prevDay').onclick=()=>{current.setDate(current.getDate()-1);updateDate();};
-  document.getElementById('nextDay').onclick=()=>{current.setDate(current.getDate()+1);updateDate();};
-  updateDate();
-
-  function load(){
-    tbody.innerHTML='';
-    let key = getDateKey(current);
-    let jobs = loadJobs(key);
-    let tHa=0, tKg=0;
-
-    jobs.forEach((j,i)=>{
-      tHa+=j.size; tKg+=j.total;
-      let tr=document.createElement('tr');
-      tr.innerHTML = `<td>${j.field}</td>
-      <td>${j.blend}</td>
-      <td>${j.rate}</td>
-      <td>${j.size}</td>
-      <td>${j.total}</td>
-      <td><button data-i='${i}' class='del'>Delete</button></td>`;
+  function render(){
+    tbody.innerHTML = '';
+    const rows = JSON.parse(localStorage.getItem(keyFor(date)) || '[]');
+    let totalHa = 0, totalKg = 0;
+    rows.forEach((r,i) => {
+      totalHa += parseFloatSafe(r.ha); totalKg += parseFloatSafe(r.kg);
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>${escapeHtml(r.field)}</td>
+                      <td>${escapeHtml(r.blend)}</td>
+                      <td>${Number(r.rate||0).toLocaleString()}</td>
+                      <td>${Number(r.ha||0).toLocaleString()}</td>
+                      <td>${Number(r.kg||0).toLocaleString()}</td>
+                      <td class="actions"><button class="edit" data-i="${i}">Edit</button>
+                        <button class="del" data-i="${i}">Delete</button></td>`;
       tbody.appendChild(tr);
     });
+    totalHaEl.textContent = (Math.round(totalHa*100)/100).toFixed(2) + ' ha';
+    totalKgEl.textContent = (Math.round(totalKg*100)/100).toFixed(2) + ' kg';
+    attachRowEvents();
+  }
 
-    sumHa.textContent = 'Total ha: '+tHa.toFixed(2);
-    sumKg.textContent = 'Total kg: '+tKg.toFixed(1);
-
+  function attachRowEvents(){
     document.querySelectorAll('.del').forEach(btn=>{
-      btn.onclick=()=>{
-        let key=getDateKey(current);
-        let jobs=loadJobs(key);
-        jobs.splice(btn.dataset.i,1);
-        saveJobs(key,jobs);
-        load();
+      btn.onclick = (e)=>{
+        const i = Number(btn.dataset.i);
+        const rows = JSON.parse(localStorage.getItem(keyFor(date)) || '[]');
+        rows.splice(i,1);
+        localStorage.setItem(keyFor(date), JSON.stringify(rows));
+        render();
+      };
+    });
+    document.querySelectorAll('.edit').forEach(btn=>{
+      btn.onclick = (e)=>{
+        const i = Number(btn.dataset.i);
+        const rows = JSON.parse(localStorage.getItem(keyFor(date)) || '[]');
+        const r = rows[i];
+        // inline edit via prompt for quick use on phone
+        const field = prompt('Field ID', r.field);
+        if (field === null) return;
+        const blend = prompt('Blend/Product', r.blend);
+        if (blend === null) return;
+        const rate = prompt('Rate (kg/ha)', r.rate);
+        if (rate === null) return;
+        const ha = prompt('Size (ha)', r.ha);
+        if (ha === null) return;
+        const kg = Math.round((Number(rate)||0) * (Number(ha)||0) * 100)/100;
+        rows[i] = { field: (field||'').trim(), blend: (blend||'').trim(), rate: parseFloatSafe(rate), ha: parseFloatSafe(ha), kg: kg };
+        localStorage.setItem(keyFor(date), JSON.stringify(rows));
+        render();
       };
     });
   }
+
+  printBtn.addEventListener('click', ()=> window.print());
+  exportBtn.addEventListener('click', ()=> exportCSVForDate(date));
+
+  loadDate(date);
 }
 
-setupMain();
-setupReport();
+// ---- Utilities ----
+function shiftDate(inputEl, delta){
+  const el = inputEl;
+  const d = new Date(el.value || today());
+  d.setDate(d.getDate() + delta);
+  el.value = d.toISOString().slice(0,10);
+  // if on report page, also reload
+  if (location.pathname.endsWith('daily.html')) {
+    const params = new URLSearchParams(location.search);
+    params.set('date', el.value);
+    history.replaceState(null, '', location.pathname + '?' + params.toString());
+    initReport(); // re-init may be heavy but safe
+    location.reload();
+  } else {
+    // nothing else
+  }
+}
+
+function exportCSVForDate(d){
+  const rows = JSON.parse(localStorage.getItem(keyFor(d)) || '[]');
+  if(!rows.length){ alert('No rows for ' + d); return; }
+  let csv = 'Field,Blend,Rate (kg/ha),Ha,Kg\\n';
+  rows.forEach(r => csv += `"${r.field}","${r.blend}",${r.rate},${r.ha},${r.kg}\\n`);
+  const blob = new Blob([csv], {type:'text/csv'}); const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = 'daily_'+d+'.csv'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+}
+
+function escapeHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// ---- Boot ----
+document.addEventListener('DOMContentLoaded', ()=>{
+  if (document.body.innerHTML.includes('Save Job')) initMain();
+  if (document.body.innerHTML.includes('Daily Report')) initReport();
+});
