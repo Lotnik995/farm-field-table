@@ -1,33 +1,65 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Farm Job Entry</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Farm Field — Daily Work</title>
 <link rel="stylesheet" href="style.css">
-<script defer src="script.js"></script>
+<script defer src="app.js"></script>
 </head>
 <body>
+<header class="app-header">
+  <h1>Farm Field</h1>
+  <nav class="top-nav">
+    <a href="index.html" class="active">Daily Work</a>
+    <a href="daily.html">Daily Report</a>
+  </nav>
+</header>
 
-<h2 class="header">Farm Job Entry</h2>
+<main class="container">
+  <section class="card form-card" aria-label="Add job">
+    <div class="row">
+      <label>Field (ID)</label>
+      <input id="field" placeholder="r-07" autocomplete="off">
+    </div>
 
-<div class="date-row">
-    <button onclick="changeDate(-1)">◀</button>
-    <span id="currentDate"></span>
-    <button onclick="changeDate(1)">▶</button>
-</div>
+    <div class="row">
+      <label>Field Size (ha)</label>
+      <input id="ha" type="number" step="0.01" placeholder="ha">
+    </div>
 
-<div class="form">
-    <input id="field" placeholder="Field ID">
-    <input id="size" type="number" step="0.01" placeholder="Ha">
-    <input id="blend" placeholder="Blend / Product">
-    <input id="rate" type="number" step="1" placeholder="Rate kg/ha">
-    <div id="totalkg" class="auto">Total kg: 0</div>
+    <div class="row">
+      <label>Fert Blend / Product</label>
+      <input id="blend" placeholder="TROPICOTE" autocomplete="off">
+    </div>
 
-    <button class="save" onclick="saveJob()">Save Job</button>
-</div>
+    <div class="row">
+      <label>Rate (kg/ha)</label>
+      <input id="rate" type="number" step="0.1" placeholder="kg/ha">
+    </div>
 
-<a class="link" href="report.html">Open Daily Report</a>
+    <div class="row">
+      <label>Total (kg) — Auto</label>
+      <input id="totalKg" readonly placeholder="auto">
+    </div>
 
+    <div class="row actions">
+      <button id="saveBtn" class="btn primary">Save Job</button>
+    </div>
+  </section>
+
+  <section class="card date-card">
+    <div class="date-row">
+      <button id="prevDay" class="btn small">← Prev</button>
+      <input id="recordDate" type="date">
+      <button id="nextDay" class="btn small">Next →</button>
+    </div>
+    <div class="date-actions">
+      <button id="openReport" class="btn">Open Daily Report</button>
+      <button id="exportDay" class="btn">Export CSV</button>
+    </div>
+    <p class="hint">Blend & rate remain until you change them. Field stays so you can tweak numbers quickly. Only Ha & Total clear after save.</p>
+  </section>
+</main>
 </body>
 </html>
