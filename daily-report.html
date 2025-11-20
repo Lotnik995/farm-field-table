@@ -1,39 +1,58 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Daily Report</title>
 <link rel="stylesheet" href="style.css">
-<script defer src="script.js"></script>
+<script defer src="app.js"></script>
 </head>
 <body>
+<header class="app-header">
+  <h1>Daily Report</h1>
+  <nav class="top-nav">
+    <a href="index.html">Daily Work</a>
+    <a href="daily.html" class="active">Daily Report</a>
+  </nav>
+</header>
 
-<h2 class="header">Daily Report</h2>
+<main class="container report-container">
+  <section class="card date-card">
+    <div class="date-row">
+      <button id="rPrev" class="btn small">← Prev</button>
+      <input id="reportDate" type="date">
+      <button id="rNext" class="btn small">Next →</button>
+    </div>
+    <div class="date-actions">
+      <button id="printBtn" class="btn">Print</button>
+      <button id="exportBtn" class="btn">Export CSV</button>
+    </div>
+  </section>
 
-<div class="date-row">
-    <button onclick="changeDate(-1)">◀</button>
-    <span id="currentDate"></span>
-    <button onclick="changeDate(1)">▶</button>
-</div>
-
-<table id="reportTable">
-    <thead>
-        <tr>
-            <th>Field</th>
-            <th>Blend</th>
-            <th>Rate<br>(kg/ha)</th>
-            <th>Ha</th>
-            <th>Total<br>(kg)</th>
-            <th>Actions</th>
+  <section class="card report-card">
+    <table id="reportTable" class="report-table">
+      <thead>
+        <tr class="report-head-row">
+          <th>FIELD</th>
+          <th>BLEND</th>
+          <th>RATE<br><small>(kg/ha)</small></th>
+          <th>SIZE<br><small>(ha)</small></th>
+          <th>TOTAL<br><small>(kg)</small></th>
+          <th>ACTIONS</th>
         </tr>
-    </thead>
-    <tbody id="reportBody"></tbody>
-</table>
-
-<div id="totals"></div>
-
-<button class="print" onclick="window.print()">Print</button>
-
+      </thead>
+      <tbody></tbody>
+      <tfoot>
+        <tr>
+          <td colspan="2" class="totals-label">Totals</td>
+          <td></td>
+          <td id="totalHa">0 ha</td>
+          <td id="totalKg">0 kg</td>
+          <td></td>
+        </tr>
+      </tfoot>
+    </table>
+  </section>
+</main>
 </body>
 </html>
