@@ -1,189 +1,154 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<!-- iPhone / iPad PWA Support -->
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Farm Report">
-
-<link rel="apple-touch-icon" href="icons/icon-192.png">
-<link rel="apple-touch-icon" sizes="512x512" href="icons/icon-512.png">
-
-<!-- Splash Screen for iOS -->
-<link rel="apple-touch-startup-image" href="icons/splash-640x1136.png" media="(device-width: 320px) and (device-height: 568px)">
-<link rel="apple-touch-startup-image" href="icons/splash-750x1334.png" media="(device-width: 375px) and (device-height: 667px)">
-<link rel="apple-touch-startup-image" href="icons/splash-1125x2436.png" media="(device-width: 375px) and (device-height: 812px)">
-<link rel="apple-touch-startup-image" href="icons/splash-1242x2688.png" media="(device-width: 414px) and (device-height: 896px)">
-<link rel="apple-touch-startup-image" href="icons/splash-1536x2048.png" media="(min-device-width: 768px)">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
 <title>Daily Work</title>
 
-<!-- FONT -->
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+<!-- ✅ PWA SUPPORT FOR IPHONE + GITHUB PAGES -->
+<link rel="manifest" href="/farm-field-table/manifest.json">
+<link rel="apple-touch-icon" href="/farm-field-table/icons/apple-icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 
 <style>
-    body {
-        margin: 0;
-        padding: 0;
-        font-family: "Inter", sans-serif;
+  body{
+    margin:0;
+    background:#e8eef3;
+    font-family:Arial, sans-serif;
+  }
 
-        /* AMOLED pure black */
-        background: #000000;
+  .container{
+    max-width:900px;
+    margin:30px auto;
+    padding:20px;
+  }
 
-        display: flex;
-        justify-content: center;
-        align-items: flex-start;
-        min-height: 100vh;
+  h1{
+    text-align:center;
+    margin-bottom:20px;
+  }
 
-        padding: 25px;
-    }
+  .glass-card{
+    background:rgba(255,255,255,0.35);
+    backdrop-filter:blur(15px);
+    padding:20px;
+    border-radius:16px;
+    box-shadow:0 8px 20px rgba(0,0,0,0.15);
+    border:1px solid rgba(255,255,255,0.45);
+  }
 
-    h1 {
-        text-align: center;
-        color: #ffffff;
-        font-size: 32px;
-        margin-bottom: 20px;
-        margin-top: 10px;
-        font-weight: 600;
-    }
+  label{
+    font-weight:bold;
+    margin-top:10px;
+    display:block;
+  }
 
-    .nav {
-        text-align: center;
-        margin-bottom: 20px;
-        font-size: 16px;
-    }
+  input, select{
+    width:100%;
+    padding:12px;
+    border-radius:8px;
+    border:1px solid #ccc;
+    margin-top:6px;
+    font-size:15px;
+  }
 
-    .nav a {
-        color: #4ea3ff;
-        text-decoration: none;
-        font-weight: 600;
-        margin: 0 12px;
-    }
+  button{
+    background:#0b76c3;
+    color:white;
+    border:none;
+    padding:12px 18px;
+    border-radius:10px;
+    font-weight:bold;
+    font-size:15px;
+    cursor:pointer;
+    margin-top:18px;
+    width:100%;
+  }
 
-    /* Liquid Glass Effect */
-    .card {
-        width: 100%;
-        max-width: 520px;
-        padding: 28px;
-        border-radius: 22px;
+  button:hover{
+    background:#095a96;
+  }
 
-        /* Glass Layer */
-        background: rgba(255, 255, 255, 0.08);
-        backdrop-filter: blur(22px);
-        -webkit-backdrop-filter: blur(22px);
+  .saved-jobs{
+    margin-top:30px;
+  }
 
-        border: 1px solid rgba(255, 255, 255, 0.15);
-        box-shadow:
-            0 8px 25px rgba(0, 0, 0, 0.6),
-            inset 0 0 20px rgba(255, 255, 255, 0.05);
+  table{
+    width:100%;
+    border-collapse:collapse;
+    margin-top:10px;
+  }
 
-        color: white;
-    }
+  th, td{
+    padding:12px;
+    border-bottom:1px solid #ccc;
+  }
 
-    label {
-        font-weight: 600;
-        display: block;
-        margin-top: 15px;
-        color: #e8e8e8;
-    }
+  th{
+    background:#0b76c3;
+    color:white;
+  }
 
-    input {
-        width: 100%;
-        padding: 14px;
-        margin-top: 6px;
-        font-size: 16px;
+  .actions button{
+    margin-right:10px;
+    padding:6px 10px;
+  }
 
-        border-radius: 14px;
-        border: none;
-
-        background: rgba(255, 255, 255, 0.18);
-        color: white;
-
-        outline: none;
-    }
-
-    input::placeholder {
-        color: #c7c7c7;
-    }
-
-    button {
-        margin-top: 26px;
-        width: 100%;
-        padding: 14px;
-        font-size: 17px;
-        font-weight: 700;
-
-        border-radius: 14px;
-        border: none;
-        cursor: pointer;
-
-        background: #4ea3ff;
-        color: black;
-    }
-
-    button:hover {
-        background: #73bbff;
-    }
-
-    .result {
-        margin-top: 18px;
-        padding: 15px;
-
-        background: rgba(255, 255, 255, 0.12);
-        border-radius: 14px;
-
-        font-size: 17px;
-        font-weight: 600;
-        color: #ffffff;
-        text-align: center;
-        display: none;
-    }
 </style>
-
 </head>
+
 <body>
 
-<div class="card">
+<div class="container">
+  <h1>Daily Work</h1>
 
-    <h1>Daily Work</h1>
-
-    <div class="nav">
-        <a href="index.html">Daily Work</a> |
-        <a href="daily-report.html">Daily Report</a>
-    </div>
-
+  <div class="glass-card">
     <label>Date</label>
     <input type="date" id="date">
 
-    <label>Field</label>
-    <input type="text" id="field" placeholder="Field name">
+    <label>Field ID</label>
+    <input type="text" id="field">
 
-    <label>Blend</label>
-    <input type="text" id="blend" placeholder="Blend">
+    <label>Fertilizer Blend</label>
+    <input type="text" id="blend">
 
     <label>Rate (kg/ha)</label>
-    <input type="number" id="rate" placeholder="e.g. 250">
+    <input type="number" id="rate" step="0.1">
 
-    <label>Size (ha)</label>
-    <input type="number" id="size" placeholder="e.g. 9">
+    <label>Field Size (ha)</label>
+    <input type="number" id="size" step="0.1">
 
-    <button onclick="addJob()">Save Work</button>
+    <button id="saveBtn">Save Job</button>
+  </div>
 
-    <div class="result" id="result"></div>
+  <div class="saved-jobs">
+    <h2>Saved Jobs</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Field</th>
+          <th>Blend</th>
+          <th>Rate</th>
+          <th>Size</th>
+          <th>Total</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="jobTable"></tbody>
+    </table>
+  </div>
+
+  <div style="text-align:center; margin-top:20px;">
+    <a href="daily-report.html" style="font-weight:bold; color:#0b76c3;">Go to Daily Report →</a>
+  </div>
 
 </div>
 
+<!-- Your existing app logic -->
 <script src="app.js"></script>
-
-<script>
-// Auto-fill today's date
-document.addEventListener("DOMContentLoaded", () => {
-    const today = new Date().toISOString().split("T")[0];
-    document.getElementById("date").value = today;
-});
-</script>
 
 </body>
 </html>
