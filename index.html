@@ -1,172 +1,91 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Daily Work</title>
-
-<!-- GOOGLE FONT -->
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
-
-<style>
-    body {
-        font-family: "Inter", sans-serif;
-        background: #f5f5f7;
-        margin: 0;
-        padding: 20px;
-    }
-
-    h1 {
-        text-align: center;
-        margin-bottom: 20px;
-        font-size: 32px;
-        font-weight: 600;
-    }
-
-    .nav {
-        text-align: center;
-        margin-bottom: 20px;
-        font-size: 16px;
-    }
-
-    .nav a {
-        margin: 0 10px;
-        color: #0077cc;
-        text-decoration: none;
-        font-weight: 600;
-    }
-
-    .container {
-        max-width: 900px;
-        margin: auto;
-        background: white;
-        padding: 25px;
-        border-radius: 12px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    }
-
-    label {
-        font-weight: 600;
-        display: block;
-        margin-top: 15px;
-    }
-
-    input {
-        width: 100%;
-        padding: 12px;
-        margin-top: 6px;
-        font-size: 16px;
-        border: 1px solid #ccc;
-        border-radius: 8px;
-    }
-
-    button {
-        margin-top: 25px;
-        width: 100%;
-        padding: 14px;
-        border: none;
-        font-size: 17px;
-        border-radius: 8px;
-        cursor: pointer;
-        background: #0077cc;
-        color: white;
-        font-weight: 600;
-    }
-
-    button:hover {
-        background: #005fa3;
-    }
-
-    .result-box {
-        margin-top: 20px;
-        padding: 15px;
-        background: #e8f2ff;
-        border-radius: 10px;
-        font-size: 18px;
-        font-weight: 600;
-        text-align: center;
-    }
-</style>
-
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <div class="container">
+    <header>
+      <h1>Daily Work</h1>
+      <div class="nav">
+        <a href="index.html">Daily Work</a> |
+        <a href="daily-report.html">Daily Report</a>
+      </div>
+    </header>
 
-<h1>Daily Work</h1>
+    <div class="card">
+      <div class="form-row">
+        <label for="inputDate">Date</label>
+        <input id="inputDate" type="date" />
+      </div>
 
-<div class="nav">
-    <a href="index.html">Daily Work</a> |
-    <a href="daily-report.html">Daily Report</a>
-</div>
+      <div class="form-row">
+        <label for="inputField">Field</label>
+        <input id="inputField" type="text" placeholder="Field ID (R-01)" />
+      </div>
 
-<div class="container">
+      <div class="form-row">
+        <label for="inputBlend">Blend</label>
+        <input id="inputBlend" type="text" placeholder="Blend" />
+      </div>
 
-    <label>Date</label>
-    <input type="date" id="date">
+      <div class="form-row">
+        <label for="inputRate">Rate (kg/ha)</label>
+        <input id="inputRate" type="number" placeholder="e.g. 250" />
+      </div>
 
-    <label>Field</label>
-    <input type="text" id="field" placeholder="Field name">
+      <div class="form-row">
+        <label for="inputSize">Size (ha)</label>
+        <input id="inputSize" type="number" placeholder="e.g. 9" />
+      </div>
 
-    <label>Blend</label>
-    <input type="text" id="blend" placeholder="Blend name">
+      <button id="addBtn" class="btn-primary">Add to Report</button>
 
-    <label>Rate (kg/ha)</label>
-    <input type="number" id="rate" placeholder="e.g. 250">
+      <div id="addResult" style="margin-top:12px;color:var(--muted);display:none"></div>
+    </div>
+  </div>
 
-    <label>Size (ha)</label>
-    <input type="number" id="size" placeholder="e.g. 7">
-
-    <button onclick="addJob()">Add to Report</button>
-
-    <div class="result-box" id="result" style="display:none;"></div>
-
-</div>
-
+<script src="app.js"></script>
 <script>
-// -----------------------------
-// LOAD SAVED DEFAULT VALUES
-// -----------------------------
-window.onload = function () {
-    document.getElementById("field").value = localStorage.getItem("lastField") || "";
-    document.getElementById("blend").value = localStorage.getItem("lastBlend") || "";
-    document.getElementById("rate").value = localStorage.getItem("lastRate") || "";
-};
+  (function(){
+    const dateEl = document.getElementById('inputDate');
+    const fieldEl = document.getElementById('inputField');
+    const blendEl = document.getElementById('inputBlend');
+    const rateEl = document.getElementById('inputRate');
+    const sizeEl = document.getElementById('inputSize');
+    const addBtn = document.getElementById('addBtn');
+    const addResult = document.getElementById('addResult');
 
-// -----------------------------
-// ADD JOB FUNCTION
-// -----------------------------
-function addJob() {
-    const date = document.getElementById("date").value;
-    const field = document.getElementById("field").value;
-    const blend = document.getElementById("blend").value;
-    const rate = parseFloat(document.getElementById("rate").value);
-    const size = parseFloat(document.getElementById("size").value);
+    // fill date with today (ISO)
+    function isoToday(){ return new Date().toISOString().slice(0,10); }
+    dateEl.value = isoToday();
 
-    if (!date || !field || !blend || !rate || !size) {
-        alert("Please fill in all fields");
-        return;
-    }
+    addBtn.addEventListener('click', ()=>{
+      const date = dateEl.value;
+      const field = fieldEl.value.trim();
+      const blend = blendEl.value.trim();
+      const rate = Number(rateEl.value) || 0;
+      const size = Number(sizeEl.value) || 0;
 
-    const total = rate * size;
+      if(!date || !field){ addResult.style.display='block'; addResult.textContent='Please enter date and field.'; return; }
 
-    // Display total
-    const resultBox = document.getElementById("result");
-    resultBox.style.display = "block";
-    resultBox.innerHTML = `Total: <strong>${total} kg</strong>`;
+      const job = { date, field, blend, rate, size, total: rate*size };
+      window.FarmApp.addJob(job);
 
-    // Save job to report
-    const jobs = JSON.parse(localStorage.getItem("jobs") || "[]");
-    jobs.push({ date, field, blend, rate, size, total });
-    localStorage.setItem("jobs", JSON.stringify(jobs));
+      addResult.style.display='block';
+      addResult.textContent = 'Saved ✓ — ' + (field||'') + ' ' + size + ' ha';
 
-    // Save default values so they stay
-    localStorage.setItem("lastField", field);
-    localStorage.setItem("lastBlend", blend);
-    localStorage.setItem("lastRate", rate);
+      // clear size only (keep rate/blend/field)
+      sizeEl.value = '';
+      // small flash
+      setTimeout(()=> addResult.style.display='none', 1400);
+    });
 
-    // Clear ONLY size field
-    document.getElementById("size").value = "";
-}
+  })();
 </script>
-
 </body>
 </html>
