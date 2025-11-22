@@ -57,7 +57,6 @@
         border-bottom: 1px solid #ddd;
     }
 
-    /* Units inside row */
     .unit {
         color: #555;
         font-size: 13px;
@@ -65,7 +64,6 @@
         margin-top: 3px;
     }
 
-    /* Buttons */
     .btn {
         padding: 6px 14px;
         border: none;
@@ -73,29 +71,25 @@
         color: white;
         cursor: pointer;
         font-size: 14px;
+        margin: 4px;
     }
     .editBtn { background: #f1b400; }
     .deleteBtn { background: #e74c3c; }
+    .primaryBtn { background: #007acc; }
+    .darkBtn { background: #333; }
 
-    .actionColumn {
-        white-space: nowrap;
-    }
-
-    /* Print-friendly styling */
     @media print {
-        .nav, .btn, #exportCsvBtn, #printBtn {
+        .nav, .btn {
             display: none !important;
         }
-        body {
-            background: white;
-        }
+        body { background: white; }
         .container {
             box-shadow: none;
             border: none;
         }
     }
 
-    /* Mobile responsive */
+    /* Mobile */
     @media (max-width: 600px) {
         table, thead, tbody, tr, th, td {
             font-size: 13px;
@@ -106,8 +100,8 @@
         }
     }
 </style>
-
 </head>
+
 <body>
 
 <h1>Daily Report</h1>
@@ -118,6 +112,7 @@
 </div>
 
 <div class="container">
+
     <table id="reportTable">
         <thead>
             <tr>
@@ -133,75 +128,112 @@
         <tbody id="reportBody"></tbody>
     </table>
 
-    <button id="printBtn" class="btn" style="background:#007acc;">Print</button>
-    <button id="exportCsvBtn" class="btn" style="background:#444;">Export CSV</button>
+    <button class="btn primaryBtn" id="printBtn">Print</button>
+    <button class="btn darkBtn" id="exportBtn">Export CSV</button>
 </div>
 
 <script>
-    function loadReport() {
-        const data = JSON.parse(localStorage.getItem("dailyReports") || "[]");
-        const body = document.getElementById("reportBody");
-        body.innerHTML = "";
+function getDateKeys() {
+    return Object.keys(localStorage).filter(k => k.startsWith("farm_jobs_"));
+}
 
-        data.forEach((row, index) => {
+function loadAllReports() {
+    const body = document.getElementById("reportBody");
+    body.innerHTML = "";
+
+    const keys = getDateKeys().sort(); // newest last
+
+    keys.forEach(key => {
+        const date = key.replace("farm_jobs_", "");
+        const rows = JSON.parse(localStorage.getItem(key) || "[]");
+
+        rows.forEach((r, index) => {
             const tr = document.createElement("tr");
 
             tr.innerHTML = `
-                <td>${row.date}</td>
-                <td>${row.field}</td>
-                <td>${row.blend}</td>
+                <td>${date}</td>
+                <td>${r.field}</td>
+                <td>${r.blend}</td>
 
                 <td>
-                    ${row.rate}
+                    ${r.rate}
                     <span class="unit">kg/ha</span>
                 </td>
 
                 <td>
-                    ${row.size}
+                    ${r.ha}
                     <span class="unit">ha</span>
                 </td>
 
                 <td>
-                    ${row.total}
+                    ${r.kg}
                     <span class="unit">kg</span>
                 </td>
 
-                <td class="actionColumn">
-                    <button class="btn editBtn" onclick="editEntry(${index})">Edit</button>
-                    <button class="btn deleteBtn" onclick="deleteEntry(${index})">Delete</button>
+                <td>
+                    <button class="btn editBtn" onclick="editEntry('${key}', ${index})">Edit</button>
+                    <button class="btn deleteBtn" onclick="deleteEntry('${key}', ${index})">Delete</button>
                 </td>
             `;
 
             body.appendChild(tr);
         });
-    }
+    });
+}
 
-    function deleteEntry(index) {
-        const data = JSON.parse(localStorage.getItem("dailyReports") || "[]");
-        data.splice(index, 1);
-        localStorage.setItem("dailyReports", JSON.stringify(data));
-        loadReport();
-    }
+function deleteEntry(key, index) {
+    const rows = JSON.parse(localStorage.getItem(key) || "[]");
+    rows.splice(index, 1);
+    localStorage.setItem(key, JSON.stringify(rows));
+    loadAllReports();
+}
 
-    function editEntry(index) {
-        alert("Edit popup coming next — still linking it.");
-    }
+function editEntry(key, index) {
+    const rows = JSON.parse(localStorage.getItem(key) || "[]");
+    const r = rows[index];
 
-    document.getElementById("printBtn").onclick = () => window.print();
+    const field = prompt("Field ID:", r.field);
+    if (field === null) return;
 
-    document.getElementById("exportCsvBtn").onclick = () => {
-        const data = JSON.parse(localStorage.getItem("dailyReports") || "[]");
-        let csv = "Date,Field,Blend,Rate,Size,Total\n";
-        data.forEach(r => csv += `${r.date},${r.field},${r.blend},${r.rate},${r.size},${r.total}\n`);
-        const blob = new Blob([csv], { type: "text/csv" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = "daily-report.csv";
-        a.click();
-    };
+    const blend = prompt("Blend:", r.blend);
+    if (blend === null) return;
 
-    loadReport();
+    const rate = prompt("Rate (kg/ha):", r.rate);
+    if (rate === null) return;
+
+    const ha = prompt("Size (ha):", r.ha);
+    if (ha === null) return;
+
+    const kg = (Number(rate) * Number(ha)).toFixed(2);
+
+    rows[index] = { field, blend, rate, ha, kg };
+    localStorage.setItem(key, JSON.stringify(rows));
+    loadAllReports();
+}
+
+document.getElementById("printBtn").onclick = () => window.print();
+
+document.getElementById("exportBtn").onclick = () => {
+    let csv = "Date,Field,Blend,Rate,Size,Total\n";
+
+    getDateKeys().forEach(key => {
+        const date = key.replace("farm_jobs_", "");
+        const rows = JSON.parse(localStorage.getItem(key) || "[]");
+
+        rows.forEach(r => {
+            csv += `${date},${r.field},${r.blend},${r.rate},${r.ha},${r.kg}\n`;
+        });
+    });
+
+    const blob = new Blob([csv], {type:"text/csv"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "daily-report.csv";
+    a.click();
+};
+
+loadAllReports();
 </script>
 
 </body>
