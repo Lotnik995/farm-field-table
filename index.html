@@ -104,6 +104,7 @@
       const size = Number(sizeEl.value) || 0;
       const total = rateType === 'normal' ? rate * size : Number(manualTotalEl.value) || 0;
 
+      // Check if required fields are filled
       if (!date || !field) {
         addResult.style.display = 'block';
         addResult.textContent = 'Please enter date and field.';
