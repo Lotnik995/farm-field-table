@@ -176,7 +176,55 @@
     d.setDate(d.getDate()-1);
     reportDateEl.value = d.toISOString().slice(0,10);
     renderForDate(reportDateEl.value);
-  };
+  };// Enable EDIT + DELETE buttons
+document.addEventListener("click", function(e){
+
+  // DELETE
+  if (e.target.classList.contains("btn-del")) {
+    const id = e.target.dataset.id;
+    if (!confirm("Delete this job?")) return;
+    FarmApp.deleteJobById(id);
+    renderForDate(reportDateEl.value);
+  }
+
+  // EDIT
+  if (e.target.classList.contains("btn-edit")) {
+    const id = e.target.dataset.id;
+    const jobs = FarmApp.loadJobs();
+    const job = jobs.find(j => j.id === id);
+    if (!job) return;
+
+    const nf = prompt("Field:", job.field); if (nf === null) return;
+    const nb = prompt("Blend:", job.blend); if (nb === null) return;
+
+    // If N-Sensor, skip rate
+    let nr = job.rate;
+    if (job.rateType !== "nsensor") {
+      nr = prompt("Rate (kg/ha):", job.rate);
+      if (nr === null) return;
+    }
+
+    const ns = prompt("Size (ha):", job.size); if (ns === null) return;
+
+    // Update job
+    job.field = nf;
+    job.blend = nb;
+    job.size = Number(ns) || 0;
+
+    if (job.rateType === "nsensor") {
+      job.total = Number(prompt("Total KG:", job.total)) || 0;
+      job.rate = 0;
+    } else {
+      job.rate = Number(nr) || 0;
+      job.total = job.rate * job.size;
+    }
+
+    FarmApp.updateJob(job);
+    renderForDate(reportDateEl.value);
+  }
+
+});
+
   nextDay.onclick = function(){
     const d = new Date(reportDateEl.value);
     d.setDate(d.getDate()+1);
