@@ -137,31 +137,38 @@
       totalHa += Number(job.size)||0;
       totalKg += Number(job.total)||0;
 
-    // SCREEN ROW
-screenBody.innerHTML += `
-  <tr>
-    <td>${job.date}</td>
-    <td>${escape(job.field)}</td>
-    <td>${escape(job.blend)}</td>
-    <td>${rateText}</td>
-    <td>${fmt(job.size)} ha</td>
-    <td>${fmt(job.total)} kg</td>
-    <td>
-      <button class="btn-edit" data-id="${job.id}">Edit</button>
-      <button class="btn-del" data-id="${job.id}" style="margin-left:6px">Delete</button>
-    </td>
-  </tr>`;
+      // SCREEN ROW
+      screenBody.innerHTML += `
+        <tr>
+          <td>${job.date}</td>
+          <td>${escape(job.field)}</td>
+          <td>${escape(job.blend)}</td>
+          <td>${rateText}</td>
+          <td>${fmt(job.size)}</td>
+          <td>${fmt(job.total)}</td>
+          <td>
+            <button class="btn-edit" data-id="${job.id}">Edit</button>
+            <button class="btn-del"  data-id="${job.id}" style="margin-left:6px">Delete</button>
+          </td>
+        </tr>`;
 
-// PRINT ROW
-printBody.innerHTML += `
-  <tr>
-    <td>${escape(job.field)}</td>
-    <td>${escape(job.blend)}</td>
-    <td>${rateText}</td>
-    <td>${fmt(job.size)} ha</td>
-    <td>${fmt(job.total)} kg</td>
-  </tr>`;
+      // PRINT ROW
+      printBody.innerHTML += `
+        <tr>
+          <td>${escape(job.field)}</td>
+          <td>${escape(job.blend)}</td>
+          <td>${rateText}</td>
+          <td>${fmt(job.size)}</td>
+          <td>${fmt(job.total)}</td>
+        </tr>`;
+    });
 
+    totalsEl.textContent =
+      `Totals: ${fmt(totalHa)} ha → ${fmt(totalKg)} kg`;
+
+    printTotals.textContent =
+      `Totals: ${fmt(totalHa)} ha — ${fmt(totalKg)} kg`;
+  }
 
   // navigation
   prevDay.onclick = function(){
