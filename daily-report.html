@@ -51,7 +51,7 @@
   .report-top h2{margin:6px 0;font-size:26px;}
   .date-line{color:#555;font-weight:700;}
 
-  /* ---------------- SCREEN TABLE (unchanged) ---------------- */
+  /* SCREEN TABLE (unchanged except date removed) */
   .table-wrap{overflow:auto;border-radius:10px;}
   table{width:100%;border-collapse:collapse;min-width:720px;}
   thead th{
@@ -77,9 +77,8 @@
 
   /* ---------------- PRINT ONLY ---------------- */
   @media print{
-
     body{background:#fff;}
-    .nav, .controls, .btn, .btn-del, .btn-edit, .screen-table {display:none!important;}
+    .nav, .controls, .btn, .screen-table {display:none!important;}
 
     .card{box-shadow:none;padding:0;}
 
@@ -107,7 +106,6 @@
     }
   }
 
-  /* Hide print table on screen */
   .print-table{display:none;}
 </style>
 </head>
@@ -129,12 +127,11 @@
       <div class="date-line">Report for: <span id="printDateDisplay">—</span></div>
     </div>
 
-    <!-- SCREEN TABLE (UNCHANGED) -->
+    <!-- SCREEN TABLE (Date removed) -->
     <div class="table-wrap screen-table">
       <table>
         <thead>
           <tr>
-            <th>Date</th>
             <th>Field</th>
             <th>Blend</th>
             <th>Rate</th>
@@ -147,7 +144,7 @@
       </table>
     </div>
 
-    <!-- PRINT TABLE (NEW PERFECT VERSION) -->
+    <!-- PRINT TABLE (Yellow header, units in each row) -->
     <div class="print-table">
       <table>
         <thead class="print-head">
@@ -217,10 +214,9 @@ function render(){
     totalHa += size;
     totalKg += total;
 
-    /* Screen row */
+    /* SCREEN row (no date column) */
     sBody.innerHTML += `
       <tr>
-        <td>${job.date}</td>
         <td>${escapeHtml(job.field)}</td>
         <td>${escapeHtml(job.blend)}</td>
         <td>${fmt(rate)} <span class="unit">kg/ha</span></td>
@@ -232,18 +228,19 @@ function render(){
         </td>
       </tr>`;
 
-    /* PRINT row (your format) */
+    /* PRINT row (units added!) */
     pBody.innerHTML += `
       <tr>
         <td>${escapeHtml(job.field)}</td>
         <td>${escapeHtml(job.blend)}</td>
-        <td>${fmt(rate)}</td>
-        <td>${fmt(size)}</td>
-        <td>${fmt(total)}</td>
+        <td>${fmt(rate)} kg/ha</td>
+        <td>${fmt(size)} ha</td>
+        <td>${fmt(total)} kg</td>
       </tr>`;
   });
 
-  totalsLine.textContent = "Totals: " + fmt(totalHa,2) + " ha → " + fmt(totalKg,2) + " kg";
+  totalsLine.textContent =
+    "Totals: " + fmt(totalHa,2) + " ha → " + fmt(totalKg,2) + " kg";
 }
 
 function editJob(i){
@@ -275,9 +272,9 @@ function deleteJob(i){
 
 document.getElementById("exportCsvBtn").onclick = function(){
   const jobs = loadJobs();
-  let csv = "Date,Field,Blend,Rate,Size,Total\n";
+  let csv = "Field,Blend,Rate,Size,Total\n";
   jobs.forEach(j=>{
-    csv+=`${j.date},${j.field},${j.blend},${j.rate},${j.size},${j.total}\n`;
+    csv+=`${j.field},${j.blend},${j.rate},${j.size},${j.total}\n`;
   });
   const blob=new Blob([csv],{type:"text/csv"});
   const a=document.createElement("a");
