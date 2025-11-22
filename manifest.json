@@ -1,12 +1,26 @@
 {
-  "name": "Farm Field",
-  "short_name": "Farm",
-  "start_url": "/farm-field-table/?homescreen=1",
+  "name": "Farm Field Table",
+  "short_name": "FarmApp",
+  "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#eef7fb",
-  "theme_color": "#3aa0ff",
+  "background_color": "#ffffff",
+  "theme_color": "#0b76c3",
   "icons": [
-    { "src": "icons/icon-192.svg", "sizes": "192x192", "type": "image/svg+xml" },
-    { "src": "icons/icon-512.svg", "sizes": "512x512", "type": "image/svg+xml" }
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/apple-icon-180.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    }
   ]
 }
