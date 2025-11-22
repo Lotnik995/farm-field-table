@@ -1,12 +1,12 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Daily Work</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Daily Work</title>
 
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <div class="container">
@@ -26,7 +26,7 @@
 
       <div class="form-row">
         <label for="inputField">Field</label>
-        <input id="inputField" type="text" placeholder="Field ID (R-01)" />
+        <input id="inputField" type="text" placeholder="Field ID (e.g., R-01)" />
       </div>
 
       <div class="form-row">
@@ -56,7 +56,7 @@
       <!-- N-Sensor: Manual Total KG input -->
       <div class="form-row" id="manualTotalRow" style="display:none;">
         <label for="inputTotal">Total KG</label>
-        <input id="inputTotal" type="number" placeholder="Total KG" />
+        <input id="inputTotal" type="number" placeholder="Manual Total KG" />
       </div>
 
       <button id="addBtn" class="btn-primary">Add to Report</button>
@@ -80,7 +80,7 @@
     const rateRow = document.getElementById('rateRow');
     const manualTotalRow = document.getElementById('manualTotalRow');
 
-    // fill date with today (ISO)
+    // Set date to today (ISO)
     function isoToday(){ return new Date().toISOString().slice(0,10); }
     dateEl.value = isoToday();
 
