@@ -1,160 +1,177 @@
-/* app.js - enhanced with N-Sensor mode */
+// -----------------------------
+// LOAD & SAVE
+// -----------------------------
+function loadJobs() {
+    try {
+        return JSON.parse(localStorage.getItem("jobs") || "[]");
+    } catch (e) {
+        console.error("Error loading jobs", e);
+        return [];
+    }
+}
 
-(function(global){
-  'use strict';
+function saveJobs(jobs) {
+    localStorage.setItem("jobs", JSON.stringify(jobs));
+}
 
-  // -----------------------
-  // Storage Helpers
-  // -----------------------
-  function loadJobs(){
-    try{ return JSON.parse(localStorage.getItem('jobs')||'[]'); }
-    catch(e){ console.error('jobs parse',e); return []; }
-  }
 
-  function saveJobs(jobs){
-    localStorage.setItem('jobs', JSON.stringify(jobs));
-  }
 
-  function genId(){ return 'id_'+Math.random().toString(36).slice(2,10); }
-
-  // Add missing IDs for old jobs
-  (function ensureIds(){
+// --------------------------------------------------
+// FIX OLD JOBS WITHOUT ID
+// --------------------------------------------------
+(function fixOldJobs() {
     let jobs = loadJobs();
     let changed = false;
-    jobs = jobs.map(j=>{
-      if(!j.id){ j.id = genId(); changed = true; }
-      return j;
+
+    jobs = jobs.map(j => {
+        if (!j.id) {
+            j.id = "id_" + Math.random().toString(36).slice(2, 10);
+            changed = true;
+        }
+        return j;
     });
-    if(changed) saveJobs(jobs);
-  })();
+
+    if (changed) saveJobs(jobs);
+})();
 
 
-  // -----------------------
-  // Add Job
-  // -----------------------
-  function addJob(job){
+
+// --------------------------------------------------
+// ADD JOB
+// --------------------------------------------------
+function addJob() {
+    const date = document.getElementById("date").value;
+    const field = document.getElementById("field").value;
+    const blend = document.getElementById("blend").value;
+    const rate = document.getElementById("rate").value;
+    const size = document.getElementById("size").value;
+    const jobType = document.getElementById("jobType").value;
+    const manualTotal = document.getElementById("manualTotal").value;
+
+    if (!date || !field || !blend || !size) {
+        alert("Missing required fields");
+        return;
+    }
+
+    let total = 0;
+
+    // --- Mode A Logic ---
+    if (jobType === "kg") {
+        total = Number(rate) * Number(size);
+    } else {
+        total = Number(manualTotal);
+    }
+
     const jobs = loadJobs();
-    job.id = genId();
+    jobs.push({
+        id: "id_" + Math.random().toString(36).slice(2, 10),
+        date,
+        field,
+        blend,
+        rate: jobType === "kg" ? Number(rate) : "N-Sensor",
+        size: Number(size),
+        total: Number(total),
+        mode: jobType
+    });
 
-    const rateInput = String(job.rate).trim().toLowerCase();
-
-    // ----- N SENSOR MODE -----
-    const isNSensor =
-      rateInput === "n" ||
-      rateInput === "ns" ||
-      rateInput === "n-sensor" ||
-      rateInput === "sensor";
-
-    if(isNSensor){
-      job.rate = "N-SENSOR";
-      job.size = Number(job.size || 0);
-
-      let manualTotal = prompt("Enter TOTAL KG (manual):", "");
-      if(manualTotal === null || manualTotal.trim()===""){
-        manualTotal = 0;
-      }
-
-      job.total = Number(manualTotal);
-
-    } else {
-      // normal mode
-      job.rate = Number(job.rate)||0;
-      job.size = Number(job.size)||0;
-      job.total = job.rate * job.size;
-    }
-
-    jobs.push(job);
     saveJobs(jobs);
-    return job;
-  }
+
+    document.getElementById("result").innerText = "Saved!";
+    document.getElementById("result").style.display = "block";
+
+    setTimeout(() => {
+        document.getElementById("result").style.display = "none";
+    }, 1200);
+}
 
 
-  // -----------------------
-  // Update Job
-  // -----------------------
-  function updateJob(updated){
-    let jobs = loadJobs();
 
-    const rateInput = String(updated.rate).trim().toLowerCase();
-    const isNSensor =
-      rateInput === "n" ||
-      rateInput === "ns" ||
-      rateInput === "n-sensor" ||
-      rateInput === "sensor";
-
-    if(isNSensor){
-      updated.rate = "N-SENSOR";
-
-      let manualTotal = prompt("Enter TOTAL KG (manual):", updated.total || "");
-      if(manualTotal === null || manualTotal.trim()===""){
-        manualTotal = 0;
-      }
-      updated.total = Number(manualTotal);
-
-    } else {
-      updated.rate = Number(updated.rate)||0;
-      updated.size = Number(updated.size)||0;
-      updated.total = updated.rate * updated.size;
-    }
-
-    const idx = jobs.findIndex(j=> j.id === updated.id);
-    if(idx !== -1){
-      jobs[idx] = updated;
-      saveJobs(jobs);
-      return true;
-    }
-    return false;
-  }
-
-
-  // -----------------------
-  // Delete
-  // -----------------------
-  function deleteJobById(id){
+// --------------------------------------------------
+// DELETE
+// --------------------------------------------------
+function deleteJobById(id) {
     let jobs = loadJobs();
     jobs = jobs.filter(j => j.id !== id);
     saveJobs(jobs);
-  }
+}
 
 
-  // -----------------------
-  // Get Jobs For Date
-  // -----------------------
-  function getJobsForDate(date){
-    return loadJobs().filter(j => j.date === date);
-  }
+
+// --------------------------------------------------
+// UPDATE JOB
+// --------------------------------------------------
+function updateJob(updatedJob) {
+    let jobs = loadJobs();
+    let idx = jobs.findIndex(j => j.id === updatedJob.id);
+
+    if (idx !== -1) {
+        jobs[idx] = updatedJob;
+        saveJobs(jobs);
+    }
+}
 
 
-  // -----------------------
-  // Export CSV
-  // -----------------------
-  function exportCsvForDate(date){
-    const jobs = getJobsForDate(date);
-    const rows = [["Date","Field","Blend","Rate","Size","Total KG"]];
 
-    jobs.forEach(j=>{
-      rows.push([j.date, j.field, j.blend, j.rate, j.size, j.total]);
+// --------------------------------------------------
+// GET JOBS FOR A DATE
+// --------------------------------------------------
+function getJobsForDate(date) {
+    const jobs = loadJobs();
+    return jobs.filter(j => j.date === date);
+}
+
+
+
+// --------------------------------------------------
+// CSV EXPORT
+// --------------------------------------------------
+function exportToCSV(jobs) {
+    if (!jobs.length) {
+        alert("No data to export");
+        return;
+    }
+
+    const rows = [
+        ["Date", "Field", "Blend", "Rate", "Size (ha)", "Total (kg)"]
+    ];
+
+    jobs.forEach(j => {
+        rows.push([
+            j.date,
+            j.field,
+            j.blend,
+            j.rate,
+            j.size,
+            j.total
+        ]);
     });
 
-    const csv = rows.map(r=>r.join(",")).join("\n");
-    const blob = new Blob([csv], {type:"text/csv"});
+    const csv = rows.map(r => r.join(",")).join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
 
-    const a=document.createElement("a");
+    const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
-    a.download = "daily-report-"+date+".csv";
+    a.download = "daily-report.csv";
     a.click();
-  }
+}
 
 
-  // expose globally
-  global.FarmApp = {
-    loadJobs,
-    saveJobs,
-    addJob,
-    updateJob,
-    deleteJobById,
-    getJobsForDate,
-    exportCsvForDate
-  };
 
-})(window);
+// --------------------------------------------------
+// JOB TYPE HANDLING (KG <-> N-SENSOR)
+// --------------------------------------------------
+document.addEventListener("DOMContentLoaded", () => {
+    const jobType = document.getElementById("jobType");
+    const rateBox = document.getElementById("rateBox");
+    const manualBox = document.getElementById("manualBox");
+
+    jobType.addEventListener("change", () => {
+        if (jobType.value === "kg") {
+            rateBox.style.display = "block";
+            manualBox.style.display = "none";
+        } else {
+            rateBox.style.display = "none";
+            manualBox.style.display = "block";
+        }
+    });
+});
