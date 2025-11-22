@@ -1,199 +1,246 @@
-// app.js - Farm Field Table (replacement safe version)
-// Keeps all public functions and adds robust notifications + logs.
+// app.js - Core storage & UI bridge
+// Put this file at project root and ensure both pages include <script src="app.js"></script>
 
-/* ===========================
-   Storage helpers
-   =========================== */
-(function(){
-  const STORAGE_KEY = 'jobs';
+// localStorage key
+const STORAGE_KEY = 'jobs';
 
-  function safeSet(key, value){
-    try {
-      localStorage.setItem(key, value);
-      return true;
-    } catch (e) {
-      console.error('localStorage.setItem failed', e);
-      return false;
-    }
+// -----------------------------
+// LOAD & SAVE
+// -----------------------------
+function loadJobs() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY) || '[]';
+    const arr = JSON.parse(raw);
+    return Array.isArray(arr) ? arr : [];
+  } catch (e) {
+    console.error('Error loading jobs', e);
+    return [];
   }
+}
 
-  function safeGet(key){
-    try {
-      return localStorage.getItem(key);
-    } catch (e) {
-      console.error('localStorage.getItem failed', e);
-      return null;
-    }
+function saveJobs(jobs) {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(jobs));
+    // dispatch a storage-like event for same-window listeners
+    window.dispatchEvent(new Event('jobsUpdated'));
+  } catch (e) {
+    console.error('Error saving jobs', e);
   }
+}
 
-  function saveJobs(jobs){
-    try {
-      const json = JSON.stringify(jobs||[]);
-      const ok = safeSet(STORAGE_KEY, json);
-      if(!ok) throw new Error('saveJobs: localStorage write failed');
-      // also update a debug timestamp so other tabs might notice changes
-      safeSet(STORAGE_KEY + '_lastupdate', String(Date.now()));
-      console.log('saveJobs: saved', jobs.length, 'rows');
-      return true;
-    } catch (err) {
-      console.error('saveJobs error', err);
-      return false;
+// --------------------------------------------------
+// FIX OLD JOBS WITHOUT ID (important!)
+// --------------------------------------------------
+(function fixOldJobs() {
+  let jobs = loadJobs();
+  let changed = false;
+  jobs = jobs.map(j => {
+    if (!j.id) {
+      j.id = 'id_' + Math.random().toString(36).slice(2, 10);
+      changed = true;
     }
+    // ensure numeric fields are numbers
+    j.rate = Number(j.rate) || 0;
+    j.size = Number(j.size) || 0;
+    j.total = Number(j.total) || Math.round((j.rate * j.size) * 100) / 100;
+    return j;
+  });
+  if (changed) {
+    saveJobs(jobs);
+    console.log('✔ Old jobs updated with ID fields.');
   }
-
-  function loadJobs(){
-    try {
-      const raw = safeGet(STORAGE_KEY) || '[]';
-      let arr = JSON.parse(raw);
-      if(!Array.isArray(arr)) arr = [];
-      // ensure every job has id (fix old data)
-      let changed = false;
-      arr = arr.map(j => {
-        if(!j || typeof j !== 'object') return null;
-        if(!j.id){
-          j.id = 'id_' + Math.random().toString(36).slice(2,9);
-          changed = true;
-        }
-        // ensure numeric fields
-        j.rate = Number(j.rate) || 0;
-        j.size = Number(j.size) || 0;
-        j.total = Number(j.total) || Math.round(j.rate * j.size * 100)/100;
-        return j;
-      }).filter(Boolean);
-      if(changed) {
-        try { safeSet(STORAGE_KEY, JSON.stringify(arr)); } catch(e){console.warn('loadJobs: unable to rewrite fixed ids', e);}
-      }
-      return arr;
-    } catch (e){
-      console.error('loadJobs parse error', e);
-      return [];
-    }
-  }
-
-  // expose internal helpers (only used below)
-  window._farm_internal = { saveJobs, loadJobs };
-
-  /* ===========================
-     Public API - preserve names
-     =========================== */
-
-  // create job object from form values (used by index)
-  window.createJobFromForm = function(){
-    const dateEl = document.getElementById && document.getElementById('date');
-    const fieldEl = document.getElementById && document.getElementById('field');
-    const blendEl = document.getElementById && document.getElementById('blend');
-    const rateEl = document.getElementById && document.getElementById('rate');
-    const sizeEl = document.getElementById && document.getElementById('size');
-
-    const date = dateEl ? String(dateEl.value || '').trim() : '';
-    const field = fieldEl ? String(fieldEl.value || '').trim() : '';
-    const blend = blendEl ? String(blendEl.value || '').trim() : '';
-    const rate = Number(rateEl ? rateEl.value : 0) || 0;
-    const size = Number(sizeEl ? sizeEl.value : 0) || 0;
-
-    if(!date || !field || !blend || rate <= 0 || size <= 0){
-      // user sees message, but also fail quietly if the UI isn't present
-      if(typeof alert === 'function') alert('Please fill all fields: date, field, blend, rate and size.');
-      return null;
-    }
-
-    const total = Math.round(rate * size * 100) / 100;
-    const job = {
-      id: 'id_' + Math.random().toString(36).slice(2,9),
-      date: date,
-      field: field,
-      blend: blend,
-      rate: rate,
-      size: size,
-      total: total
-    };
-
-    // remember last-used prefs (not required)
-    try {
-      safeSet('lastField', field);
-      safeSet('lastBlend', blend);
-      safeSet('lastRate', String(rate));
-    } catch(e){ /* ignore */ }
-
-    return job;
-  };
-
-  // add job (push and save)
-  window.addJob = function(job){
-    if(!job || !job.id){
-      console.error('addJob: invalid job', job);
-      return false;
-    }
-    const jobs = loadJobs();
-    jobs.push(job);
-    const ok = saveJobs(jobs);
-
-    // Dispatch two notifications for robustness:
-    // 1) Custom event 'jobs-updated' (works in same window/tab)
-    // 2) Synthetic 'storage' event for pages listening to storage
-    try {
-      window.dispatchEvent(new CustomEvent('jobs-updated', { detail: { count: jobs.length }}));
-    } catch(e){ console.warn('dispatch jobs-updated failed', e); }
-
-    try {
-      // browsers don't allow creating native StorageEvent easily cross-origin,
-      // but many pages listen to custom 'storage' or to STORAGE_KEY changes.
-      // We try to mimic by dispatching a plain Event named 'storage'
-      window.dispatchEvent(new Event('storage'));
-    } catch(e){ /* ignore */ }
-
-    console.log('addJob: added job', job.id, 'saved:', ok);
-    return ok;
-  };
-
-  window.deleteJobById = function(id){
-    if(!id) return false;
-    let jobs = loadJobs();
-    const before = jobs.length;
-    jobs = jobs.filter(j => j.id !== id);
-    const ok = saveJobs(jobs);
-    try { window.dispatchEvent(new CustomEvent('jobs-updated', { detail:{count: jobs.length} })); } catch(e){}
-    try { window.dispatchEvent(new Event('storage')); } catch(e){}
-    console.log('deleteJobById', id, 'before', before, 'after', jobs.length);
-    return ok;
-  };
-
-  window.updateJob = function(updated){
-    if(!updated || !updated.id) return false;
-    const jobs = loadJobs();
-    const idx = jobs.findIndex(j => j.id === updated.id);
-    if(idx === -1) return false;
-    jobs[idx] = updated;
-    const ok = saveJobs(jobs);
-    try { window.dispatchEvent(new CustomEvent('jobs-updated', { detail:{count: jobs.length} })); } catch(e){}
-    try { window.dispatchEvent(new Event('storage')); } catch(e){}
-    console.log('updateJob', updated.id, 'ok', ok);
-    return ok;
-  };
-
-  window.getJobsForDate = function(dateIso){
-    if(!dateIso) return [];
-    const jobs = loadJobs();
-    return jobs.filter(j => j.date === dateIso);
-  };
-
-  window.exportToCSV = function(jobs){
-    if(!jobs || !jobs.length){ if(typeof alert === 'function') alert('No rows to export'); return; }
-    const rows = [['Date','Field','Blend','Rate (kg/ha)','Size (ha)','Total (kg)']];
-    jobs.forEach(j => rows.push([j.date,j.field,j.blend,String(j.rate),String(j.size),String(j.total)]));
-    const csv = rows.map(r => r.map(c => '"'+String(c).replace(/"/g,'""')+'"').join(',')).join('\\n');
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'daily-report.csv'; a.click();
-    try { setTimeout(()=>URL.revokeObjectURL(a.href), 2000); } catch(e){}
-  };
-
-  // expose convenience functions for debugging
-  window._farm = {
-    loadJobs: loadJobs,
-    saveJobs: saveJobs,
-    STORAGE_KEY: STORAGE_KEY
-  };
-
-  // small helper: when script loads, emit 'jobs-updated' so other pages render initial state
-  try { window.dispatchEvent(new CustomEvent('jobs-updated', { detail: { count: loadJobs().length } })); } catch(e){}
 })();
+
+// -----------------------------
+// ADD NEW JOB
+// -----------------------------
+function addJob(job) {
+  const jobs = loadJobs();
+  job.id = 'id_' + Math.random().toString(36).slice(2, 10);
+  job.rate = Number(job.rate) || 0;
+  job.size = Number(job.size) || 0;
+  job.total = Number(job.total) || Math.round((job.rate * job.size) * 100) / 100;
+  jobs.push(job);
+  saveJobs(jobs);
+  // if on report page, re-render for current date
+  if (typeof renderReportForDate === 'function') {
+    const currentDateEl = document.getElementById && document.getElementById('reportDate');
+    if (currentDateEl) renderReportForDate(currentDateEl.value);
+  }
+}
+
+// -----------------------------
+// DELETE JOB BY ID
+// -----------------------------
+function deleteJobById(id) {
+  let jobs = loadJobs();
+  jobs = jobs.filter(j => j.id !== id);
+  saveJobs(jobs);
+  // re-render if possible
+  if (typeof renderReportForDate === 'function') {
+    const currentDateEl = document.getElementById && document.getElementById('reportDate');
+    if (currentDateEl) renderReportForDate(currentDateEl.value);
+  }
+}
+
+// -----------------------------
+// UPDATE JOB
+// -----------------------------
+function updateJob(updatedJob) {
+  let jobs = loadJobs();
+  const idx = jobs.findIndex(j => j.id === updatedJob.id);
+  if (idx !== -1) {
+    updatedJob.rate = Number(updatedJob.rate) || 0;
+    updatedJob.size = Number(updatedJob.size) || 0;
+    updatedJob.total = Number(updatedJob.total) || Math.round((updatedJob.rate * updatedJob.size) * 100) / 100;
+    jobs[idx] = updatedJob;
+    saveJobs(jobs);
+    if (typeof renderReportForDate === 'function') {
+      const currentDateEl = document.getElementById && document.getElementById('reportDate');
+      if (currentDateEl) renderReportForDate(currentDateEl.value);
+    }
+  }
+}
+
+// -----------------------------
+// GET JOBS FOR SPECIFIC DATE
+// -----------------------------
+function getJobsForDate(date) {
+  const jobs = loadJobs();
+  return jobs.filter(j => j.date === date);
+}
+
+// -----------------------------
+// CSV EXPORT
+// -----------------------------
+function exportToCSV(jobs) {
+  if (!Array.isArray(jobs) || jobs.length === 0) {
+    alert('No data to export for this date.');
+    return;
+  }
+  const rows = [
+    ['Date', 'Field', 'Blend', 'Rate (kg/ha)', 'Size (ha)', 'Total (kg)']
+  ];
+  jobs.forEach(j => rows.push([j.date, j.field, j.blend, j.rate, j.size, j.total]));
+  const csv = rows.map(r => r.map(cell => `"${String(cell).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'daily-report.csv';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+// -----------------------------
+// Render helpers for daily-report.html
+// -----------------------------
+function renderReportForDate(date) {
+  if (!date) return;
+  const screenBody = document.getElementById('screenBody');
+  const printBody = document.getElementById('printBody');
+  const totalsLine = document.getElementById('totalsLine');
+
+  if (!screenBody || !printBody || !totalsLine) return;
+
+  const jobs = getJobsForDate(date);
+  screenBody.innerHTML = '';
+  printBody.innerHTML = '';
+
+  let totalHa = 0;
+  let totalKg = 0;
+
+  jobs.forEach((job, idx) => {
+    totalHa += Number(job.size) || 0;
+    totalKg += Number(job.total) || 0;
+
+    // screen row
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${escapeHtml(job.field)}</td>
+      <td>${escapeHtml(job.blend)}</td>
+      <td>${formatNum(job.rate)} <span class="unit">kg/ha</span></td>
+      <td>${formatNum(job.size)} <span class="unit">ha</span></td>
+      <td>${formatNum(job.total)} <span class="unit">kg</span></td>
+      <td class="actions">
+        <button class="btn-edit" data-id="${job.id}">Edit</button>
+        <button class="btn-del" data-id="${job.id}">Delete</button>
+      </td>`;
+    screenBody.appendChild(tr);
+
+    // print row (no actions)
+    const pr = document.createElement('tr');
+    pr.innerHTML = `
+      <td>${escapeHtml(job.field)}</td>
+      <td>${escapeHtml(job.blend)}</td>
+      <td style="text-align:right">${formatNum(job.rate)} kg/ha</td>
+      <td style="text-align:right">${formatNum(job.size)} ha</td>
+      <td style="text-align:right">${formatNum(job.total)} kg</td>`;
+    printBody.appendChild(pr);
+  });
+
+  totalsLine.textContent = 'Totals: ' + formatNum(totalHa,2) + ' ha — ' + formatNum(totalKg,2) + ' kg';
+
+  // wire edit/delete
+  Array.from(document.querySelectorAll('.btn-del')).forEach(b => b.onclick = function(){
+    const id = this.dataset.id;
+    if(!confirm('Delete this job?')) return;
+    deleteJobById(id);
+  });
+
+  Array.from(document.querySelectorAll('.btn-edit')).forEach(b => b.onclick = function(){
+    const id = this.dataset.id;
+    const jobs = loadJobs();
+    const job = jobs.find(x=>x.id===id);
+    if(!job) return alert('Job not found.');
+    // simple prompt-based edit (quick)
+    const newField = prompt('Field ID', job.field);
+    if(newField === null) return;
+    const newBlend = prompt('Blend', job.blend);
+    if(newBlend === null) return;
+    const newRate = prompt('Rate (kg/ha)', job.rate);
+    if(newRate === null) return;
+    const newSize = prompt('Size (ha)', job.size);
+    if(newSize === null) return;
+    job.field = newField;
+    job.blend = newBlend;
+    job.rate = Number(newRate) || 0;
+    job.size = Number(newSize) || 0;
+    job.total = Math.round((job.rate * job.size) * 100) / 100;
+    updateJob(job);
+  });
+}
+
+// -----------------------------
+// Small helpers
+// -----------------------------
+function formatNum(n,decimals){
+  if (n === null || n === undefined || n === '') return '';
+  if (typeof decimals === 'number') return Number(n).toLocaleString(undefined,{minimumFractionDigits: decimals, maximumFractionDigits: decimals});
+  return Number(n).toLocaleString();
+}
+function escapeHtml(s){
+  if(s===undefined || s===null) return '';
+  return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[m]);
+}
+
+// -----------------------------
+// Listen for storage changes (sync across tabs / PWA)
+window.addEventListener('storage', function(e){
+  if(e.key === STORAGE_KEY){
+    const currentDateEl = document.getElementById && document.getElementById('reportDate');
+    if(currentDateEl && typeof renderReportForDate === 'function'){
+      renderReportForDate(currentDateEl.value);
+    }
+  }
+});
+
+// Also listen for the synthetic event (same-origin writes)
+window.addEventListener('jobsUpdated', function(){
+  const currentDateEl = document.getElementById && document.getElementById('reportDate');
+  if(currentDateEl && typeof renderReportForDate === 'function'){
+    renderReportForDate(currentDateEl.value);
+  }
+});
