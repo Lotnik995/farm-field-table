@@ -1,91 +1,193 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Daily Work</title>
 
-<!-- PWA -->
-<link rel="manifest" href="/farm-field-table/manifest.json">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="apple-touch-icon" href="/farm-field-table/icons/apple-icon-180.png">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
 
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+<!-- iOS PWA hints (if you've uploaded icons) -->
+<link rel="apple-touch-icon" href="icons/icon-192.png">
 
 <style>
-    body { margin:0; padding:0; font-family:Inter,system-ui; background:#000; display:flex; justify-content:center; align-items:flex-start; min-height:100vh; padding:24px; }
-    .card{ width:100%; max-width:520px; padding:28px; border-radius:20px; background:rgba(255,255,255,0.06); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); border:1px solid rgba(255,255,255,0.12); color:#fff; box-shadow:0 8px 30px rgba(0,0,0,0.6); }
-    h1{ text-align:center; margin:0 0 12px 0; font-size:26px; font-weight:600; color:#fff; }
-    .nav{ text-align:center; margin-bottom:12px; }
-    .nav a{ color:#7fc7ff; text-decoration:none; font-weight:600; margin:0 8px; }
-    label{ display:block; margin-top:12px; font-weight:600; color:#e6eef8; }
-    input{ width:100%; padding:12px; margin-top:6px; border-radius:12px; border:none; background:rgba(255,255,255,0.12); color:#fff; font-size:15px; outline:none; }
-    button{ margin-top:18px; width:100%; padding:12px; border-radius:12px; border:none; background:#4ea3ff; color:#000; font-weight:700; font-size:16px; cursor:pointer; }
-    .result{ margin-top:14px; padding:10px; border-radius:10px; background:rgba(255,255,255,0.08); color:#fff; display:none; text-align:center; font-weight:600; }
+  :root{
+    --glass-bg: rgba(255,255,255,0.06);
+    --accent:#4ea3ff;
+    --muted:#cbd5e1;
+    --card-border: rgba(255,255,255,0.12);
+  }
+
+  *{box-sizing:border-box;font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial;}
+
+  body{
+    margin:0;
+    background:#0b0b0b;
+    color:#fff;
+    -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
+    padding:28px;
+    display:flex;
+    justify-content:center;
+  }
+
+  .wrap{ width:100%; max-width:560px; }
+
+  .card{
+    background:var(--glass-bg);
+    padding:26px;
+    border-radius:18px;
+    border:1px solid var(--card-border);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.6), inset 0 0 30px rgba(255,255,255,0.02);
+  }
+
+  h1{ text-align:center; margin:4px 0 10px 0; font-size:28px; font-weight:700; color:white; }
+
+  .nav{ text-align:center; margin-bottom:18px; }
+  .nav a{ color:var(--accent); text-decoration:none; font-weight:600; margin:0 8px; }
+
+  label{ display:block; font-weight:600; margin-top:12px; color:#e6eefc; font-size:14px; }
+  input[type="text"], input[type="number"], input[type="date"]{
+    width:100%;
+    padding:12px 14px;
+    border-radius:12px;
+    border:none;
+    margin-top:8px;
+    font-size:15px;
+    background:rgba(255,255,255,0.06);
+    color:#fff;
+    outline:none;
+  }
+  input::placeholder{ color: #9fb5d9; }
+
+  .actions{
+    margin-top:18px;
+    display:flex;
+    gap:12px;
+    align-items:center;
+  }
+  .btn{
+    padding:12px 14px;
+    border-radius:12px;
+    font-weight:700;
+    cursor:pointer;
+    border:none;
+  }
+  .btn-save{ flex:1; background:var(--accent); color:#000; }
+  .btn-clear{ background:#eee; color:#000; border-radius:12px; padding:10px 12px; }
+
+  .result{
+    margin-top:12px;
+    padding:10px;
+    border-radius:10px;
+    background:rgba(255,255,255,0.03);
+    color:var(--muted);
+    font-weight:700;
+    display:none;
+    text-align:center;
+  }
+
+  /* small screens */
+  @media (max-width:420px){
+    .wrap{ padding:8px; }
+    .card{ padding:18px; border-radius:14px; }
+  }
 </style>
 </head>
 <body>
-<div class="card">
-  <h1>Daily Work</h1>
-  <div class="nav"><a href="index.html">Daily Work</a> | <a href="daily-report.html">Daily Report</a></div>
+  <div class="wrap">
+    <div class="card">
+      <h1>Daily Work</h1>
+      <div class="nav">
+        <a href="index.html">Daily Work</a> |
+        <a href="daily-report.html">Daily Report</a>
+      </div>
 
-  <label>Date</label>
-  <input type="date" id="date">
+      <label for="date">Date</label>
+      <input id="date" type="date">
 
-  <label>Field</label>
-  <input type="text" id="field" placeholder="Field ID (e.g. R-05)">
+      <label for="field">Field</label>
+      <input id="field" type="text" placeholder="e.g. R-05">
 
-  <label>Blend</label>
-  <input type="text" id="blend" placeholder="Blend name">
+      <label for="blend">Blend</label>
+      <input id="blend" type="text" placeholder="e.g. TROPICOTE">
 
-  <label>Rate (kg/ha)</label>
-  <input type="number" id="rate" placeholder="e.g. 250" step="0.1">
+      <label for="rate">Rate (kg/ha)</label>
+      <input id="rate" type="number" placeholder="e.g. 250" min="0" step="1">
 
-  <label>Size (ha)</label>
-  <input type="number" id="size" placeholder="e.g. 9" step="0.1">
+      <label for="size">Size (ha)</label>
+      <input id="size" type="number" placeholder="e.g. 9" min="0" step="0.1">
 
-  <button id="saveJobBtn">Save Work</button>
-  <div class="result" id="result"></div>
-</div>
+      <div class="actions">
+        <button class="btn btn-save" id="saveBtn">Save Work</button>
+        <button class="btn btn-clear" id="clearBtn" title="Clear inputs">Clear</button>
+      </div>
+
+      <div class="result" id="result"></div>
+    </div>
+  </div>
 
 <script src="app.js"></script>
 <script>
-// auto-fill date to today (ISO)
-document.addEventListener('DOMContentLoaded', function(){
-  const today = new Date().toISOString().slice(0,10);
-  const dateEl = document.getElementById('date');
-  if(dateEl) dateEl.value = today;
+  // Autofill today's date
+  document.addEventListener('DOMContentLoaded', () => {
+    const inputDate = document.getElementById('date');
+    const today = new Date().toISOString().slice(0,10);
+    inputDate.value = today;
+  });
 
-  // prefill last used values if present
-  try {
-    const lf = localStorage.getItem('lastField');
-    const lb = localStorage.getItem('lastBlend');
-    const lr = localStorage.getItem('lastRate');
-    if(lf) document.getElementById('field').value = lf;
-    if(lb) document.getElementById('blend').value = lb;
-    if(lr) document.getElementById('rate').value = lr;
-  } catch(e){}
+  // Hook save button to global addJob
+  document.getElementById('saveBtn').addEventListener('click', () => {
+    // gather fields and call the global addJob
+    const d = document.getElementById('date').value;
+    const f = document.getElementById('field').value.trim();
+    const b = document.getElementById('blend').value.trim();
+    const r = Number(document.getElementById('rate').value) || 0;
+    const s = Number(document.getElementById('size').value) || 0;
 
-  // wire button
-  const btn = document.getElementById('saveJobBtn');
-  btn.addEventListener('click', function(){
-    if(typeof createJobFromForm !== 'function'){
-      alert('App error: createJobFromForm missing');
+    if(!d || !f){ 
+      showResult('Please provide date and field.', true);
       return;
     }
-    const job = createJobFromForm();
-    if(!job) return;
-    addJob(job);
-    // feedback
-    const res = document.getElementById('result');
-    res.style.display = 'block';
-    res.textContent = `Saved: ${job.field} — ${job.total} kg`;
-    setTimeout(()=> res.style.display='none', 2200);
-    // clear size only
-    document.getElementById('size').value = '';
+
+    // build job object (app.js addJob will store it)
+    const job = {
+      date: d,
+      field: f,
+      blend: b || '',
+      rate: r,
+      size: s,
+      total: Math.round((r * s) * 100) / 100
+    };
+
+    // addJob is defined in app.js
+    if(typeof addJob === 'function'){
+      addJob(job);
+      showResult('Saved ✓', false);
+      // clear only blend/size/rate/field? keep date for convenience
+      document.getElementById('field').value = '';
+      document.getElementById('blend').value = '';
+      document.getElementById('rate').value = '';
+      document.getElementById('size').value = '';
+    } else {
+      showResult('Internal error: addJob not found.', true);
+      console.error('addJob function missing (app.js).');
+    }
   });
-});
+
+  document.getElementById('clearBtn').addEventListener('click', () => {
+    ['field','blend','rate','size'].forEach(id => document.getElementById(id).value = '');
+    showResult('', false, true);
+  });
+
+  function showResult(msg, isError=false, hide=false){
+    const el = document.getElementById('result');
+    if(hide || !msg){ el.style.display = 'none'; return; }
+    el.style.display = 'block';
+    el.textContent = msg;
+    el.style.color = isError ? '#ffb3b3' : '#cfeffd';
+    setTimeout(()=>{ el.style.display = 'none'; }, 1800);
+  }
 </script>
 </body>
 </html>
