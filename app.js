@@ -111,3 +111,28 @@ function exportToCSV(jobs) {
     a.download = "daily-report.csv";
     a.click();
 }
+// -----------------------------
+// CREATE JOB FROM FORM (FIX FOR iPHONE)
+// -----------------------------
+function createJobFromForm() {
+    const date = document.getElementById("date").value;
+    const field = document.getElementById("field").value.trim();
+    const blend = document.getElementById("blend").value.trim();
+    const rate = Number(document.getElementById("rate").value);
+    const size = Number(document.getElementById("size").value);
+
+    if (!date || !field || !blend || !rate || !size) {
+        alert("Fill all fields");
+        return null;
+    }
+
+    return {
+        id: "id_" + Math.random().toString(36).slice(2, 10),
+        date: date,
+        field: field,
+        blend: blend,
+        rate: rate,
+        size: size,
+        total: Math.round(rate * size * 100) / 100
+    };
+}
