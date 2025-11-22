@@ -1,151 +1,120 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport"
-      content="width=device-width, initial-scale=1.0, maximum-scale=10, user-scalable=yes">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Daily Report</title>
-
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap"
-      rel="stylesheet">
 
 <style>
     body {
-        font-family: "Inter", sans-serif;
-        background: #f5f5f7;
+        font-family: Arial, sans-serif;
+        background: #f2f2f2;
         margin: 0;
-        padding: 20px;
+        padding: 10px;
     }
 
     h1 {
         text-align: center;
-        font-size: 32px;
-        margin-bottom: 10px;
-        font-weight: 700;
+        margin: 10px 0 5px 0;
+        font-size: 26px;
+        font-weight: bold;
     }
 
     .nav {
         text-align: center;
-        margin-bottom: 25px;
-    }
-    .nav a {
-        margin: 0 10px;
-        color: #0077cc;
-        font-weight: 600;
-        text-decoration: none;
-        font-size: 17px;
+        margin-bottom: 10px;
+        font-size: 15px;
     }
 
-    .container {
-        max-width: 1200px;
-        margin: auto;
+    .nav a {
+        margin: 0 8px;
+        color: #0066cc;
+        text-decoration: none;
+        font-weight: bold;
+    }
+
+    .date-header {
+        text-align: center;
+        font-size: 18px;
+        font-weight: bold;
+        margin-bottom: 10px;
+        background: #fff;
+        padding: 5px;
+        border-radius: 6px;
+    }
+
+    .report-box {
         background: white;
-        padding: 20px;
-        border-radius: 14px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        padding: 8px;
+        border-radius: 10px;
+        max-width: 900px;
+        margin: auto;
     }
 
     table {
         width: 100%;
         border-collapse: collapse;
-        table-layout: fixed;   /* FIT ON SCREEN */
-    }
-
-    th, td {
-        padding: 10px 6px;
-        border-bottom: 1px solid #eee;
-        text-align: center;
-        white-space: nowrap; /* Keep in one line */
-        overflow: hidden;
-        text-overflow: ellipsis;
+        font-size: 13px;            /* compact font */
     }
 
     th {
         background: #0077cc;
         color: white;
-        font-size: 16px;
-        height: 45px;
+        padding: 6px;
+        font-size: 13px;
+    }
+
+    td {
+        padding: 4px 6px;
+        border-bottom: 1px solid #ddd;
+        white-space: nowrap;
     }
 
     .unit {
-        font-size: 0.9em;
-        margin-left: 3px;
-        opacity: 0.8;
+        color: #444;
+        font-size: 12px;
     }
 
-    /* BUTTONS */
-    .btn-edit {
-        background: #f1c40f;
-        color: #000;
-        padding: 5px 12px;
-        border-radius: 8px;
-        font-weight: 600;
-        cursor: pointer;
+    .actions button {
+        padding: 4px 8px;
+        font-size: 12px;
         border: none;
-    }
-    .btn-delete {
-        background: #e74c3c;
-        color: #fff;
-        padding: 5px 12px;
-        border-radius: 8px;
-        font-weight: 600;
+        border-radius: 5px;
         cursor: pointer;
-        border: none;
+        color: white;
     }
 
-    /* PRINT & CSV BUTTONS */
+    .edit-btn { background: #e6b300; }
+    .delete-btn { background: #d11a2a; }
+
     .bottom-buttons {
         text-align: center;
-        margin-top: 20px;
+        margin-top: 12px;
     }
-    .print-btn, .csv-btn {
-        padding: 10px 20px;
-        border-radius: 8px;
+
+    .bottom-buttons button {
+        padding: 8px 18px;
+        font-size: 14px;
+        border-radius: 6px;
         border: none;
-        margin: 10px 5px;
         cursor: pointer;
-        font-size: 16px;
-        font-weight: 600;
-    }
-    .print-btn {
-        background: #0077cc;
-        color: white;
-    }
-    .csv-btn {
-        background: #333;
-        color: white;
+        margin: 5px;
     }
 
-    /* MOBILE STYLE */
-    @media (max-width: 600px) {
-        th, td {
-            padding: 6px 3px;
-            font-size: 14px;
-        }
-        .unit {
-            font-size: 0.8em;
-        }
-        .btn-edit, .btn-delete {
-            padding: 4px 8px;
-            font-size: 12px;
-        }
-    }
+    .print-btn { background: #0077cc; color: white; }
+    .csv-btn { background: #444; color: white; }
 
-    /* PRINT CLEAN STYLE */
+    /* 🔥 PRINT CLEAN MODE */
     @media print {
-        body {
-            background: white;
-        }
-        .nav, .print-btn, .csv-btn, .btn-delete, .btn-edit {
-            display: none !important;
-        }
-        .container {
-            box-shadow: none;
-        }
+        .actions { display: none !important; }
+        .bottom-buttons { display: none !important; }
+        .nav { display: none !important; }
+        body { background: white; }
+        .report-box { box-shadow: none; }
     }
 </style>
-</head>
 
+</head>
 <body>
 
 <h1>Daily Report</h1>
@@ -155,54 +124,54 @@
     <a href="daily-report.html">Daily Report</a>
 </div>
 
-<div class="container">
-    <table id="reportTable">
-        <thead>
-            <tr>
-                <th>Date</th>
-                <th>Field</th>
-                <th>Blend</th>
-                <th>Rate</th>
-                <th>Size</th>
-                <th>Total</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody id="reportBody">
-            <!-- Filled by JS -->
-        </tbody>
-    </table>
+<div id="dateHeader" class="date-header"></div>
 
-    <div class="bottom-buttons">
-        <button class="print-btn" onclick="window.print()">Print</button>
-        <button class="csv-btn" onclick="exportCSV()">Export CSV</button>
-    </div>
+<div class="report-box">
+<table id="reportTable">
+    <thead>
+        <tr>
+            <th>Field</th>
+            <th>Blend</th>
+            <th>Rate</th>
+            <th>Size</th>
+            <th>Total</th>
+            <th class="actions">Actions</th>
+        </tr>
+    </thead>
+    <tbody></tbody>
+</table>
+
+<div class="bottom-buttons">
+    <button class="print-btn" onclick="window.print()">Print</button>
+    <button class="csv-btn" onclick="exportCSV()">Export CSV</button>
+</div>
 </div>
 
-<script src="app.js"></script>
-
 <script>
-/* ---------------------------
-   LOAD REPORT ROWS
----------------------------- */
 function loadReport() {
     const jobs = JSON.parse(localStorage.getItem("jobs") || "[]");
-    const tbody = document.getElementById("reportBody");
+    const tbody = document.querySelector("#reportTable tbody");
     tbody.innerHTML = "";
+
+    if (jobs.length === 0) return;
+
+    // DATE shown once at the top
+    document.getElementById("dateHeader").innerText =
+        "Report for: " + jobs[0].date;
 
     jobs.forEach((job, index) => {
         const tr = document.createElement("tr");
 
         tr.innerHTML = `
-            <td>${job.date}</td>
             <td>${job.field}</td>
             <td>${job.blend}</td>
-            <td>${job.rate} <span class="unit">kg/ha</span></td>
-            <td>${job.size} <span class="unit">ha</span></td>
-            <td>${job.total} <span class="unit">kg</span></td>
-            <td>
-                <button class="btn-edit" onclick="editJob(${index})">Edit</button>
-                <button class="btn-delete" onclick="deleteJob(${index})">Delete</button>
+            <td>${job.rate} <span class='unit'>kg/ha</span></td>
+            <td>${job.size} <span class='unit'>ha</span></td>
+            <td>${job.total} <span class='unit'>kg</span></td>
+
+            <td class="actions">
+                <button class="edit-btn" onclick="editJob(${index})">Edit</button>
+                <button class="delete-btn" onclick="deleteJob(${index})">Delete</button>
             </td>
         `;
 
@@ -211,33 +180,31 @@ function loadReport() {
 }
 
 function deleteJob(i) {
-    const jobs = JSON.parse(localStorage.getItem("jobs"));
+    const jobs = JSON.parse(localStorage.getItem("jobs") || "[]");
+    if (!confirm("Delete this entry?")) return;
+
     jobs.splice(i, 1);
     localStorage.setItem("jobs", JSON.stringify(jobs));
     loadReport();
 }
 
 function editJob(i) {
-    localStorage.setItem("editIndex", i);
-    window.location.href = "index.html";
+    alert("Edit will be added next.");
 }
 
-/* ---------------------------
-   EXPORT CSV
----------------------------- */
 function exportCSV() {
     const jobs = JSON.parse(localStorage.getItem("jobs") || "[]");
-    let csv = "Date,Field,Blend,Rate,Size,Total\n";
 
-    jobs.forEach(j => {
-        csv += `${j.date},${j.field},${j.blend},${j.rate},${j.size},${j.total}\n`;
+    let csv = "Field,Blend,Rate (kg/ha),Size (ha),Total (kg)\n";
+
+    jobs.forEach(job => {
+        csv += `${job.field},${job.blend},${job.rate},${job.size},${job.total}\n`;
     });
 
     const blob = new Blob([csv], { type: "text/csv" });
-    const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
-    a.href = url;
-    a.download = "daily_report.csv";
+    a.href = URL.createObjectURL(blob);
+    a.download = "daily-report.csv";
     a.click();
 }
 
