@@ -1,166 +1,204 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Daily Report</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+<div class="container">
+  <header>
+    <h1>Daily Report</h1>
+    <div class="nav">
+      <a href="index.html">Daily Work</a> |
+      <a href="daily-report.html">Daily Report</a>
+    </div>
+  </header>
+
+  <div class="card">
+
+    <!-- controls -->
+    <div style="display:flex;gap:12px;align-items:center;justify-content:center;margin-bottom:12px;flex-wrap:wrap">
+      <button id="prevDay" class="btn">◀ Prev</button>
+      <input id="reportDate" type="date" class="date-input">
+      <button id="nextDay" class="btn">Next ▶</button>
+
+      <div style="width:16px"></div>
+
+      <button id="printBtn" class="btn btn-print">Print</button>
+      <button id="csvBtn" class="btn btn-csv">Export CSV</button>
+    </div>
+
+    <!-- SCREEN TABLE -->
+    <div class="table-wrap screen-table">
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Field</th>
+            <th>Blend</th>
+            <th>Rate</th>
+            <th>Size (ha)</th>
+            <th>Total (kg)</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="screenBody"></tbody>
+      </table>
+    </div>
+
+    <div id="totals" class="totals"></div>
+  </div>
+
+  <!-- PRINT TABLE -->
+  <div class="print-table">
+    <div class="print-wrapper">
+      <div class="print-inner">
+        <div style="text-align:center;margin-top:20px">
+          <h2 style="margin:0">Daily Report</h2>
+          <div style="font-weight:700;margin-top:4px">
+            Report for: <span id="printDateLabel">—</span>
+          </div>
+        </div>
+
+        <table style="margin-top:14px">
+          <thead class="print-head">
+            <tr>
+              <th>Field ID</th>
+              <th>Fert Blend</th>
+              <th>Rate</th>
+              <th>Field Size (ha)</th>
+              <th>Total KG</th>
+            </tr>
+          </thead>
+          <tbody id="printBody"></tbody>
+        </table>
+
+        <div id="printTotals" style="margin-top:10px;font-weight:700"></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- LOAD FarmApp FIRST -->
+<script src="app.js"></script>
+
 <script>
 (function(){
-  const reportDateEl = document.getElementById('reportDate');
-  const prevBtn = document.getElementById('prevDay');
-  const nextBtn = document.getElementById('nextDay');
-  const screenBody = document.getElementById('screenBody');
-  const printBody = document.getElementById('printBody');
-  const totalsEl = document.getElementById('totals');
-  const printDateLabel = document.getElementById('printDateLabel');
-  const printTotals = document.getElementById('printTotals');
-  const printBtn = document.getElementById('printBtn');
-  const csvBtn = document.getElementById('csvBtn');
+
+  // elements
+  const reportDateEl = document.getElementById("reportDate");
+  const screenBody = document.getElementById("screenBody");
+  const printBody  = document.getElementById("printBody");
+  const totalsEl   = document.getElementById("totals");
+  const printTotals= document.getElementById("printTotals");
+  const printDateLabel = document.getElementById("printDateLabel");
+
+  // helper
+  function fmt(n){
+    return isNaN(n) ? n : Number(n).toLocaleString();
+  }
+  function escape(s){
+    return String(s||"").replace(/[&<>"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[m]));
+  }
 
   function isoToday(){ return new Date().toISOString().slice(0,10); }
   reportDateEl.value = isoToday();
 
-  function formatNum(n,d=0){
-    if(isNaN(n)) return n;
-    return Number(n).toLocaleString(undefined,{minimumFractionDigits:d, maximumFractionDigits:d});
-  }
+  // RENDER FUNCTION ----------------------------------
+  function renderForDate(d){
 
-  function escapeHtml(s){
-    return String(s||'').replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
-  }
+    screenBody.innerHTML = "";
+    printBody.innerHTML  = "";
+    printDateLabel.textContent = d;
 
-  function renderForDate(isoDate){
-    screenBody.innerHTML = '';
-    printBody.innerHTML = '';
-    printDateLabel.textContent = isoDate;
+    const jobs = FarmApp.getJobsForDate(d);
 
-    const jobs = window.FarmApp.getJobsForDate(isoDate);
     if(!jobs.length){
-      totalsEl.textContent = 'Totals: 0 ha → 0 kg';
-      printTotals.textContent = '';
+      totalsEl.textContent = "Totals: 0 ha → 0 kg";
+      printTotals.textContent = "";
       return;
     }
 
-    let totalHa = 0, totalKg = 0;
+    let totalHa = 0;
+    let totalKg = 0;
 
-    jobs.forEach((j, idx)=>{
-      const size = Number(j.size)||0;
-      const total = Number(j.total)||0;
-      const rate = Number(j.rate)||0;
-      const isNS = j.rateType === "nsensor";
+    jobs.forEach(job => {
 
-      totalHa += size;
-      totalKg += total;
+      const rateText =
+        job.rateType === "nsensor"
+        ? "N-Sensor"
+        : fmt(job.rate) + " kg/ha";
 
-      // Determine RATE text
-      const rateScreen = isNS ? 
-        `N-Sensor` : 
-        `${formatNum(rate)} <span class="unit">kg/ha</span>`;
-
-      const ratePrint = isNS ?
-        "N-Sensor" :
-        `${formatNum(rate)} kg/ha`;
+      totalHa += Number(job.size)||0;
+      totalKg += Number(job.total)||0;
 
       // SCREEN ROW
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td>${j.date}</td>
-        <td>${escapeHtml(j.field)}</td>
-        <td>${escapeHtml(j.blend)}</td>
-        <td>${rateScreen}</td>
-        <td>${formatNum(size)} <span class="unit">ha</span></td>
-        <td>${formatNum(total)} <span class="unit">kg</span></td>
-        <td>
-          <button class="btn-edit" data-id="${j.id}">Edit</button>
-          <button class="btn-del" data-id="${j.id}" style="margin-left:8px">Delete</button>
-        </td>`;
-      screenBody.appendChild(tr);
+      screenBody.innerHTML += `
+        <tr>
+          <td>${job.date}</td>
+          <td>${escape(job.field)}</td>
+          <td>${escape(job.blend)}</td>
+          <td>${rateText}</td>
+          <td>${fmt(job.size)}</td>
+          <td>${fmt(job.total)}</td>
+          <td>
+            <button class="btn-edit" data-id="${job.id}">Edit</button>
+            <button class="btn-del"  data-id="${job.id}" style="margin-left:6px">Delete</button>
+          </td>
+        </tr>`;
 
       // PRINT ROW
-      const pr = document.createElement('tr');
-      pr.innerHTML = `
-        <td>${escapeHtml(j.field)}</td>
-        <td>${escapeHtml(j.blend)}</td>
-        <td style="text-align:right">${ratePrint}</td>
-        <td style="text-align:right">${formatNum(size)} ha</td>
-        <td style="text-align:right">${formatNum(total)} kg</td>`;
-      printBody.appendChild(pr);
+      printBody.innerHTML += `
+        <tr>
+          <td>${escape(job.field)}</td>
+          <td>${escape(job.blend)}</td>
+          <td>${rateText}</td>
+          <td>${fmt(job.size)}</td>
+          <td>${fmt(job.total)}</td>
+        </tr>`;
     });
 
     totalsEl.textContent =
-      `Totals: ${formatNum(totalHa,2)} ha → ${formatNum(totalKg,2)} kg`;
+      `Totals: ${fmt(totalHa)} ha → ${fmt(totalKg)} kg`;
+
     printTotals.textContent =
-      `Totals: ${formatNum(totalHa,2)} ha — ${formatNum(totalKg,2)} kg`;
-
-    // delete
-    document.querySelectorAll('.btn-del').forEach(btn=>{
-      btn.onclick = function(){
-        if(!confirm("Delete this job?")) return;
-        window.FarmApp.deleteJobById(this.dataset.id);
-        renderForDate(reportDateEl.value);
-      };
-    });
-
-    // edit
-    document.querySelectorAll('.btn-edit').forEach(btn=>{
-      btn.onclick = function(){
-        const jobs = window.FarmApp.loadJobs();
-        const job = jobs.find(j=>j.id===this.dataset.id);
-        if(!job) return;
-
-        // Keep your existing edit system
-        const nf = prompt("Field:", job.field); if(nf===null) return;
-        const nb = prompt("Blend:", job.blend); if(nb===null) return;
-
-        if(job.rateType === "nsensor"){
-          const nt = prompt("Total KG:", job.total); if(nt===null) return;
-          job.total = Number(nt)||0;
-        } else {
-          const nr = prompt("Rate (kg/ha):", job.rate); if(nr===null) return;
-          const ns = prompt("Size (ha):", job.size); if(ns===null) return;
-          job.rate = Number(nr)||0;
-          job.size = Number(ns)||0;
-          job.total = job.rate * job.size;
-        }
-
-        job.field = nf;
-        job.blend = nb;
-
-        window.FarmApp.updateJob(job);
-        renderForDate(reportDateEl.value);
-      };
-    });
+      `Totals: ${fmt(totalHa)} ha — ${fmt(totalKg)} kg`;
   }
 
-  prevBtn.onclick = function(){
+  // navigation
+  prevDay.onclick = function(){
     const d = new Date(reportDateEl.value);
     d.setDate(d.getDate()-1);
     reportDateEl.value = d.toISOString().slice(0,10);
     renderForDate(reportDateEl.value);
   };
-
-  nextBtn.onclick = function(){
+  nextDay.onclick = function(){
     const d = new Date(reportDateEl.value);
     d.setDate(d.getDate()+1);
     reportDateEl.value = d.toISOString().slice(0,10);
     renderForDate(reportDateEl.value);
   };
 
-  reportDateEl.onchange = ()=> renderForDate(reportDateEl.value);
+  reportDateEl.onchange = () => renderForDate(reportDateEl.value);
 
-  printBtn.onclick = ()=>{
+  printBtn.onclick = () => {
     renderForDate(reportDateEl.value);
-    setTimeout(()=>print(),150);
+    setTimeout(()=>print(),200);
   };
 
-  csvBtn.onclick = ()=>{
-    const jobs = window.FarmApp.getJobsForDate(reportDateEl.value);
-    let csv = "Date,Field,Blend,Rate,Size,Total\n";
-    jobs.forEach(j=>{
-      const r = j.rateType === "nsensor" ? "N-Sensor" : j.rate;
-      csv += `${j.date},${j.field},${j.blend},${r},${j.size},${j.total}\n`;
-    });
-    const blob = new Blob([csv], {type:"text/csv"});
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = "daily-report.csv";
-    a.click();
-  };
+  csvBtn.onclick = () =>
+    FarmApp.exportCsvForDate(reportDateEl.value);
 
+  // INITIAL DRAW
   renderForDate(reportDateEl.value);
+
 })();
 </script>
+
+</body>
+</html>
