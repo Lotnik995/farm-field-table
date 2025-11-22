@@ -4,289 +4,211 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Daily Report</title>
-
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
-
-<style>
-  :root{
-    --blue:#0984d6;
-    --muted:#6b7280;
-    --yellow:#ffdd3c;
-  }
-
-  *{box-sizing:border-box;font-family:Inter,system-ui,-apple-system;}
-
-  body{
-    margin:0;
-    background:#f3f4f6;
-    color:#111;
-  }
-
-  .page{
-    max-width:1200px;
-    margin:28px auto;
-    padding:18px;
-  }
-
-  header h1{
-    text-align:center;
-    font-size:34px;
-    margin:6px 0;
-  }
-
-  .nav{text-align:center;margin-bottom:18px;}
-  .nav a{color:var(--blue);text-decoration:none;font-weight:600;margin:0 8px;}
-
-  .card{
-    background:#fff;
-    padding:18px;
-    border-radius:12px;
-    box-shadow:0 6px 18px rgba(0,0,0,0.06);
-  }
-
-  .report-top{
-    text-align:center;
-    margin-bottom:14px;
-  }
-  .report-top h2{margin:6px 0;font-size:26px;}
-  .date-line{color:#555;font-weight:700;}
-
-  /* SCREEN TABLE (unchanged except date removed) */
-  .table-wrap{overflow:auto;border-radius:10px;}
-  table{width:100%;border-collapse:collapse;min-width:720px;}
-  thead th{
-    background:#0b76c3;
-    color:white;
-    padding:14px;
-    text-align:left;
-    font-size:14px;
-  }
-  tbody td{
-    border-bottom:1px solid #e5e5e5;
-    padding:14px;
-  }
-  .unit{color:#888;font-size:12px;margin-left:4px;}
-
-  .btn{padding:8px 12px;font-size:13px;border-radius:8px;cursor:pointer;font-weight:700;}
-  .btn-edit{background:#f6c85f;}
-  .btn-del{background:#ff6b6b;color:#fff;}
-
-  .controls{text-align:center;margin-top:18px;}
-  .btn-main{background:var(--blue);color:#fff;border:none;padding:10px 18px;border-radius:8px;font-weight:700;}
-  .btn-ghost{background:#333;color:#fff;border:none;padding:10px 18px;border-radius:8px;}
-
-  /* ---------------- PRINT ONLY ---------------- */
-  @media print{
-    body{background:#fff;}
-    .nav, .controls, .btn, .screen-table {display:none!important;}
-
-    .card{box-shadow:none;padding:0;}
-
-    .print-table{display:block!important;margin-top:10px;}
-
-    table{width:100%;border-collapse:collapse;font-size:11px;}
-
-    thead.print-head th{
-      background:var(--yellow)!important;
-      color:#000!important;
-      border:1px solid #000;
-      padding:6px;
-      text-align:center;
-      font-weight:700;
-    }
-
-    .print-table td{
-      border:1px solid #000;
-      padding:6px;
-    }
-
-    @page {
-      size: A4 portrait;
-      margin:10mm;
-    }
-  }
-
-  .print-table{display:none;}
-</style>
+<link rel="stylesheet" href="style.css">
 </head>
-
 <body>
-<div class="page">
-  <header>
-    <h1>Daily Report</h1>
-    <div class="nav">
-      <a href="index.html">Daily Work</a> |
-      <a href="daily-report.html">Daily Report</a>
+  <div class="container">
+    <header>
+      <h1>Daily Report</h1>
+      <div class="nav">
+        <a href="index.html">Daily Work</a> |
+        <a href="daily-report.html">Daily Report</a>
+      </div>
+    </header>
+
+    <div class="card">
+      <div style="display:flex;gap:12px;align-items:center;justify-content:center;margin-bottom:12px;flex-wrap:wrap">
+        <button id="prevDay" class="btn">◀ Prev</button>
+        <input id="reportDate" type="date" style="padding:8px;border-radius:8px;background:transparent;color:#fff;border:1px solid rgba(255,255,255,0.04)">
+        <button id="nextDay" class="btn">Next ▶</button>
+
+        <div style="width:16px"></div>
+
+        <button id="printBtn" class="btn btn-print">Print</button>
+        <button id="csvBtn" class="btn btn-csv">Export CSV</button>
+      </div>
+
+      <div class="table-wrap screen-table">
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Field</th>
+              <th>Blend</th>
+              <th>Rate (kg/ha)</th>
+              <th>Size (ha)</th>
+              <th>Total (kg)</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="screenBody"></tbody>
+        </table>
+      </div>
+
+      <div id="totals" class="totals"></div>
     </div>
-  </header>
 
-  <div class="card">
-
-    <div class="report-top">
-      <h2>Daily Report</h2>
-      <div class="date-line">Report for: <span id="printDateDisplay">—</span></div>
-    </div>
-
-    <!-- SCREEN TABLE (Date removed) -->
-    <div class="table-wrap screen-table">
-      <table>
-        <thead>
-          <tr>
-            <th>Field</th>
-            <th>Blend</th>
-            <th>Rate</th>
-            <th>Size</th>
-            <th>Total</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody id="screenBody"></tbody>
-      </table>
-    </div>
-
-    <!-- PRINT TABLE (Yellow header, units in each row) -->
+    <!-- print table (hidden on screen) -->
     <div class="print-table">
-      <table>
-        <thead class="print-head">
-          <tr>
-            <th>Field ID</th>
-            <th>Fert Blend</th>
-            <th>Rate (kg/ha)</th>
-            <th>Field Size (ha)</th>
-            <th>Total KG</th>
-          </tr>
-        </thead>
-        <tbody id="printBody"></tbody>
-      </table>
-    </div>
-
-    <div id="totalsLine" style="margin-top:12px;font-weight:700;"></div>
-
-    <div class="controls">
-      <button class="btn-main" id="printBtn">Print</button>
-      <button class="btn-ghost" id="exportCsvBtn">Export CSV</button>
+      <div class="print-wrapper">
+        <div class="print-inner">
+          <div style="text-align:center;margin-top:20px">
+            <h2 style="margin:0">Daily Report</h2>
+            <div style="font-weight:700;margin-top:4px">Report for: <span id="printDateLabel">—</span></div>
+          </div>
+          <table style="margin-top:14px">
+            <thead class="print-head">
+              <tr>
+                <th>Field ID</th>
+                <th>Fert Blend</th>
+                <th>Rate (kg/ha)</th>
+                <th>Field Size (ha)</th>
+                <th>Total KG</th>
+              </tr>
+            </thead>
+            <tbody id="printBody"></tbody>
+          </table>
+          <div style="margin-top:10px;font-weight:700" id="printTotals"></div>
+        </div>
+      </div>
     </div>
 
   </div>
-</div>
 
+<script src="app.js"></script>
 <script>
-function loadJobs(){
-  try { return JSON.parse(localStorage.getItem("jobs")||"[]"); }
-  catch(e){ return []; }
-}
+(function(){
+  const reportDateEl = document.getElementById('reportDate');
+  const prevBtn = document.getElementById('prevDay');
+  const nextBtn = document.getElementById('nextDay');
+  const screenBody = document.getElementById('screenBody');
+  const printBody = document.getElementById('printBody');
+  const totalsEl = document.getElementById('totals');
+  const printDateLabel = document.getElementById('printDateLabel');
+  const printTotals = document.getElementById('printTotals');
+  const printBtn = document.getElementById('printBtn');
+  const csvBtn = document.getElementById('csvBtn');
 
-function saveJobs(j){ localStorage.setItem("jobs",JSON.stringify(j)); }
+  // set today as default
+  function isoToday(){ return new Date().toISOString().slice(0,10); }
+  reportDateEl.value = isoToday();
 
-function fmt(n,d=0){
-  if(isNaN(n)) return n;
-  return Number(n).toLocaleString(undefined,{minimumFractionDigits:d,maximumFractionDigits:d});
-}
+  // render for chosen date
+  function renderForDate(isoDate){
+    screenBody.innerHTML = '';
+    printBody.innerHTML = '';
+    printDateLabel.textContent = isoDate;
 
-function escapeHtml(s){
-  return String(s||"").replace(/[&<>"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[m]));
-}
+    const jobs = window.FarmApp.getJobsForDate(isoDate);
+    if(!jobs.length){
+      totalsEl.textContent = 'Totals: 0 ha → 0 kg';
+      printTotals.textContent = '';
+      return;
+    }
 
-function render(){
-  const jobs = loadJobs();
-  const sBody = document.getElementById("screenBody");
-  const pBody = document.getElementById("printBody");
-  const dateDisp = document.getElementById("printDateDisplay");
-  const totalsLine = document.getElementById("totalsLine");
+    let totalHa = 0, totalKg = 0;
 
-  sBody.innerHTML = "";
-  pBody.innerHTML = "";
+    jobs.forEach((j, idx)=>{
+      const rate = Number(j.rate)||0;
+      const size = Number(j.size)||0;
+      const total = Number(j.total) || rate*size;
+      totalHa += size;
+      totalKg += total;
 
-  if(!jobs.length){
-    totalsLine.textContent = "Totals: 0 ha — 0 kg";
-    return;
+      // SCREEN row
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${j.date}</td>
+        <td>${escapeHtml(j.field)}</td>
+        <td>${escapeHtml(j.blend)}</td>
+        <td>${formatNum(rate)} <span class="unit">kg/ha</span></td>
+        <td>${formatNum(size)} <span class="unit">ha</span></td>
+        <td>${formatNum(total)} <span class="unit">kg</span></td>
+        <td>
+          <button class="btn-edit" data-id="${j.id}">Edit</button>
+          <button class="btn-del" data-id="${j.id}" style="margin-left:8px">Delete</button>
+        </td>`;
+      screenBody.appendChild(tr);
+
+      // PRINT row
+      const pr = document.createElement('tr');
+      pr.innerHTML = `
+        <td>${escapeHtml(j.field)}</td>
+        <td>${escapeHtml(j.blend)}</td>
+        <td style="text-align:right">${formatNum(rate)} kg/ha</td>
+        <td style="text-align:right">${formatNum(size)} ha</td>
+        <td style="text-align:right">${formatNum(total)} kg</td>`;
+      printBody.appendChild(pr);
+    });
+
+    totalsEl.textContent = `Totals: ${formatNum(totalHa,2)} ha → ${formatNum(totalKg,2)} kg`;
+    printTotals.textContent = `Totals: ${formatNum(totalHa,2)} ha — ${formatNum(totalKg,2)} kg`;
+
+    // wire edit/delete
+    Array.from(document.querySelectorAll('.btn-del')).forEach(b=>{
+      b.onclick = function(){
+        const id = this.dataset.id;
+        if(!confirm('Delete this job?')) return;
+        window.FarmApp.deleteJobById(id);
+        renderForDate(reportDateEl.value);
+      };
+    });
+    Array.from(document.querySelectorAll('.btn-edit')).forEach(b=>{
+      b.onclick = function(){
+        const id = this.dataset.id;
+        const jobs = window.FarmApp.loadJobs();
+        const job = jobs.find(x=>x.id===id);
+        if(!job) return;
+        const nf = prompt('Field:', job.field); if(nf===null) return;
+        const nb = prompt('Blend:', job.blend); if(nb===null) return;
+        const nr = prompt('Rate (kg/ha):', job.rate); if(nr===null) return;
+        const ns = prompt('Size (ha):', job.size); if(ns===null) return;
+        job.field = nf; job.blend = nb; job.rate = Number(nr)||0; job.size = Number(ns)||0;
+        job.total = job.rate * job.size;
+        window.FarmApp.updateJob(job);
+        renderForDate(reportDateEl.value);
+      };
+    });
   }
 
-  dateDisp.textContent = jobs[0].date;
+  // helpers
+  function formatNum(n,d=0){
+    if(isNaN(n)) return n;
+    return Number(n).toLocaleString(undefined,{minimumFractionDigits:d, maximumFractionDigits:d});
+  }
+  function escapeHtml(s){ return String(s||'').replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m])); }
 
-  let totalHa = 0, totalKg = 0;
+  // navigation
+  prevBtn.onclick = function(){
+    const dt = new Date(reportDateEl.value);
+    dt.setDate(dt.getDate()-1);
+    reportDateEl.value = dt.toISOString().slice(0,10);
+    renderForDate(reportDateEl.value);
+  };
+  nextBtn.onclick = function(){
+    const dt = new Date(reportDateEl.value);
+    dt.setDate(dt.getDate()+1);
+    reportDateEl.value = dt.toISOString().slice(0,10);
+    renderForDate(reportDateEl.value);
+  };
 
-  jobs.forEach((job, idx)=>{
-    const rate = Number(job.rate)||0;
-    const size = Number(job.size)||0;
-    const total = Number(job.total)||rate*size;
+  reportDateEl.onchange = function(){ renderForDate(reportDateEl.value); };
 
-    totalHa += size;
-    totalKg += total;
+  // print & csv
+  printBtn.onclick = function(){
+    // show print view then call print; ensure print table is up-to-date
+    renderForDate(reportDateEl.value);
+    setTimeout(()=> window.print(), 200);
+  };
+  csvBtn.onclick = function(){
+    window.FarmApp.exportCsvForDate(reportDateEl.value);
+  };
 
-    /* SCREEN row (no date column) */
-    sBody.innerHTML += `
-      <tr>
-        <td>${escapeHtml(job.field)}</td>
-        <td>${escapeHtml(job.blend)}</td>
-        <td>${fmt(rate)} <span class="unit">kg/ha</span></td>
-        <td>${fmt(size)} <span class="unit">ha</span></td>
-        <td>${fmt(total)} <span class="unit">kg</span></td>
-        <td>
-          <button class="btn btn-edit" onclick="editJob(${idx})">Edit</button>
-          <button class="btn btn-del" onclick="deleteJob(${idx})">Delete</button>
-        </td>
-      </tr>`;
+  // initial render
+  renderForDate(reportDateEl.value);
 
-    /* PRINT row (units added!) */
-    pBody.innerHTML += `
-      <tr>
-        <td>${escapeHtml(job.field)}</td>
-        <td>${escapeHtml(job.blend)}</td>
-        <td>${fmt(rate)} kg/ha</td>
-        <td>${fmt(size)} ha</td>
-        <td>${fmt(total)} kg</td>
-      </tr>`;
-  });
-
-  totalsLine.textContent =
-    "Totals: " + fmt(totalHa,2) + " ha → " + fmt(totalKg,2) + " kg";
-}
-
-function editJob(i){
-  const jobs = loadJobs();
-  const j = jobs[i];
-  if(!j) return;
-
-  const nf = prompt("Field:", j.field); if(nf===null) return;
-  const ns = prompt("Size (ha):", j.size); if(ns===null) return;
-  const nr = prompt("Rate (kg/ha):", j.rate); if(nr===null) return;
-
-  j.field = nf;
-  j.size = Number(ns)||0;
-  j.rate = Number(nr)||0;
-  j.total = j.size*j.rate;
-
-  jobs[i]=j;
-  saveJobs(jobs);
-  render();
-}
-
-function deleteJob(i){
-  if(!confirm("Delete?")) return;
-  const jobs = loadJobs();
-  jobs.splice(i,1);
-  saveJobs(jobs);
-  render();
-}
-
-document.getElementById("exportCsvBtn").onclick = function(){
-  const jobs = loadJobs();
-  let csv = "Field,Blend,Rate,Size,Total\n";
-  jobs.forEach(j=>{
-    csv+=`${j.field},${j.blend},${j.rate},${j.size},${j.total}\n`;
-  });
-  const blob=new Blob([csv],{type:"text/csv"});
-  const a=document.createElement("a");
-  a.href=URL.createObjectURL(blob);
-  a.download="daily-report.csv";
-  a.click();
-};
-
-document.getElementById("printBtn").onclick = ()=>{ setTimeout(()=>print(),150); };
-
-render();
+})();
 </script>
-
 </body>
 </html>
