@@ -40,7 +40,7 @@
             <th>Date</th>
             <th>Field</th>
             <th>Blend</th>
-            <th>Rate (kg/ha)</th>
+            <th>Rate</th>
             <th>Size (ha)</th>
             <th>Total (kg)</th>
             <th>Actions</th>
@@ -69,7 +69,7 @@
             <tr>
               <th>Field ID</th>
               <th>Fert Blend</th>
-              <th>Rate (kg/ha)</th>
+              <th>Rate</th>
               <th>Field Size (ha)</th>
               <th>Total KG</th>
             </tr>
@@ -84,7 +84,6 @@
 
 </div>
 
-<!-- LOAD FarmApp FIRST -->
 <script src="app.js"></script>
 
 <script>
@@ -162,10 +161,58 @@
     });
 
     totalsEl.textContent =
-      `Totals: ${fmt(totalHa)} ha → ${fmt(totalKg)} kg`;
+      \`Totals: \${fmt(totalHa)} ha → \${fmt(totalKg)} kg\`;
 
     printTotals.textContent =
-      `Totals: ${fmt(totalHa)} ha — ${fmt(totalKg)} kg`;
+      \`Totals: \${fmt(totalHa)} ha — \${fmt(totalKg)} kg\`;
+
+    // -------------------------------
+    // ADD BACK EDIT / DELETE BUTTONS
+    // -------------------------------
+    document.querySelectorAll(".btn-del").forEach(btn=>{
+      btn.onclick = function(){
+        const id = this.dataset.id;
+        if(!confirm("Delete this job?")) return;
+        FarmApp.deleteJobById(id);
+        renderForDate(reportDateEl.value);
+      }
+    });
+
+    document.querySelectorAll(".btn-edit").forEach(btn=>{
+      btn.onclick = function(){
+        const id = this.dataset.id;
+        const jobs = FarmApp.loadJobs();
+        const job = jobs.find(j => j.id === id);
+        if(!job) return;
+
+        const nf = prompt("Field:", job.field); if(nf===null) return;
+        const nb = prompt("Blend:", job.blend); if(nb===null) return;
+
+        let size = prompt("Size (ha):", job.size);
+        if(size===null) return;
+        size = Number(size)||0;
+
+        if(job.rateType === "normal"){
+          let nr = prompt("Rate (kg/ha):", job.rate);
+          if(nr===null) return;
+          nr = Number(nr)||0;
+          job.rate = nr;
+          job.total = nr * size;
+        } else {
+          let nt = prompt("Total KG:", job.total);
+          if(nt===null) return;
+          job.total = Number(nt)||0;
+        }
+
+        job.field = nf;
+        job.blend = nb;
+        job.size  = size;
+
+        FarmApp.updateJob(job);
+        renderForDate(reportDateEl.value);
+      };
+    });
+
   }
 
   prevDay.onclick = function(){
