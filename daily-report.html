@@ -1,233 +1,149 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Daily Report</title>
-
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
 
 <style>
-    body {
-        margin: 0;
-        font-family: "Inter", sans-serif;
-        background: #f2f2f2;
-        padding: 20px;
-    }
+  :root{ --blue:#0b76c3; --yellow:#ffdd3c; --muted:#6b7280; }
+  *{box-sizing:border-box;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial;}
+  body{ margin:0; background:#f3f4f6; color:#111; -webkit-font-smoothing:antialiased; padding:28px; }
+  h1{ text-align:center; margin:0 0 6px 0; font-size:34px; font-weight:700; }
+  .nav{ text-align:center; margin-bottom:20px; }
+  .nav a{ color:var(--blue); text-decoration:none; font-weight:600; margin:0 8px; }
 
-    h1 {
-        text-align: center;
-        margin-bottom: 20px;
-        font-size: 32px;
-    }
+  .card{ max-width:1100px; margin:0 auto; background:#fff; padding:18px; border-radius:12px; box-shadow:0 8px 18px rgba(15,23,42,0.06); }
 
-    .nav {
-        text-align: center;
-        margin-bottom: 20px;
-    }
+  .controls{ display:flex; gap:12px; align-items:center; justify-content:flex-start; margin-bottom:10px; flex-wrap:wrap; }
+  .nav-btn{ padding:8px 12px; border-radius:8px; background:#eaeef1; border:none; font-weight:700; cursor:pointer; }
+  input[type=date]{ padding:8px 10px; border-radius:8px; border:1px solid #ddd; }
 
-    .nav a {
-        color: #0b76c3;
-        text-decoration: none;
-        font-weight: 600;
-        margin: 0 12px;
-    }
+  .btn-print{ background:var(--blue); color:#fff; border:none; padding:10px 14px; border-radius:8px; cursor:pointer; font-weight:700; }
+  .btn-csv{ background:#34a853; color:#fff; border:none; padding:10px 14px; border-radius:8px; cursor:pointer; font-weight:700; }
 
-    .report-box {
-        max-width: 1000px;
-        margin: auto;
-        background: white;
-        padding: 25px;
-        border-radius: 14px;
-        box-shadow: 0 6px 20px rgba(0,0,0,0.12);
-    }
+  .table-wrap{ overflow:auto; margin-top:12px; border-radius:8px; }
+  table{ width:100%; border-collapse:separate; min-width:780px; }
+  thead th{ background:var(--blue); color:#fff; padding:14px 12px; text-align:left; font-weight:700; }
+  tbody td{ padding:14px 12px; border-bottom:1px solid #efefef; vertical-align:middle; }
 
-    .top-controls {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        gap: 12px;
-        margin-bottom: 20px;
-    }
+  .unit{ color:var(--muted); font-size:12px; margin-left:6px; }
 
-    button {
-        padding: 10px 16px;
-        border: none;
-        border-radius: 10px;
-        font-weight: 700;
-        cursor: pointer;
-    }
+  .btn-edit{ background:#ffdd3c; border:none; padding:8px 10px; border-radius:8px; cursor:pointer; font-weight:700; }
+  .btn-del{ background:#ff6b6b; border:none; padding:8px 10px; border-radius:8px; cursor:pointer; color:#fff; font-weight:700; margin-left:8px; }
 
-    .nav-btn { background: #e0e0e0; }
-    .print-btn { background: #0b76c3; color: white; }
-    .csv-btn { background: #4caf50; color: white; }
+  #totalsLine{ margin-top:12px; font-weight:700; font-size:16px; }
 
-    .screen-table {
-        overflow-x: auto;
-        margin-top: 20px;
-    }
-
-    table {
-        width: 100%;
-        border-collapse: collapse;
-        min-width: 750px;
-    }
-
-    thead th {
-        background: #0b76c3;
-        color: white;
-        padding: 12px;
-        text-align: left;
-        font-size: 14px;
-    }
-
-    tbody td {
-        padding: 12px;
-        border-bottom: 1px solid #e5e5e5;
-    }
-
-    .unit {
-        font-size: 11px;
-        color: #777;
-        margin-left: 4px;
-    }
-
-    .actions button {
-        margin-right: 6px;
-    }
-
-    .edit-btn { background: #ffdd3c; }
-    .del-btn { background: #ff6666; color: white; }
-
-    #totalsLine {
-        margin-top: 12px;
-        font-weight: 700;
-        font-size: 16px;
-    }
-
-    /* PRINT TABLE (yellow header) - hidden on screen */
-    .print-table {
-        display: none;
-    }
-
-    /* ---------------- PRINT MODE ---------------- */
-    @media print {
-
-        body {
-            background: white;
-        }
-
-        /* HIDE SCREEN ELEMENTS */
-        .screen-table,
-        .actions,
-        .nav,
-        .top-controls,
-        .print-btn,
-        .csv-btn,
-        .nav-btn {
-            display: none !important;
-        }
-
-        /* SHOW PRINT TABLE ONLY */
-        .print-table {
-            display: block !important;
-            margin-top: 20px;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 12px;
-        }
-
-        thead.print-head th {
-            background: #ffdd3c !important;
-            color: black !important;
-            border: 1px solid black;
-            padding: 6px;
-            font-weight: 700;
-            text-align: center;
-        }
-
-        .print-table td {
-            padding: 6px;
-            border: 1px solid black;
-        }
-
-        @page {
-            size: A4 portrait;
-            margin: 10mm;
-        }
-    }
+  /* PRINT view */
+  .print-table{ display:none; }
+  @media print{
+    .controls, .btn-edit, .btn-del, .nav { display:none !important; }
+    .table-wrap { display:none !important; }
+    .print-table{ display:block !important; margin-top:10px; }
+    table{ width:100%; border-collapse:collapse; font-size:11px; }
+    thead.print-head th{ background:var(--yellow)!important; color:#000!important; border:1px solid #000; padding:6px; text-align:center; }
+    .print-table td{ border:1px solid #000; padding:6px; }
+    @page { size:A4 portrait; margin:10mm; }
+  }
 </style>
-
 </head>
 <body>
 
 <h1>Daily Report</h1>
-
 <div class="nav">
-    <a href="index.html">Daily Work</a> |
-    <a href="daily-report.html">Daily Report</a>
+  <a href="index.html">Daily Work</a> |
+  <a href="daily-report.html">Daily Report</a>
 </div>
 
-<div class="report-box">
+<div class="card">
+  <div class="controls">
+    <button class="nav-btn" id="prevDay">◀ Prev</button>
+    <input type="date" id="reportDate">
+    <button class="nav-btn" id="nextDay">Next ▶</button>
 
-    <div class="top-controls">
-        <button class="nav-btn" id="prevDay">◀ Prev</button>
-        <input type="date" id="reportDate">
-        <button class="nav-btn" id="nextDay">Next ▶</button>
+    <div style="flex:1"></div>
 
-        <button class="print-btn" id="printBtn">Print</button>
-        <button class="csv-btn" id="csvBtn">Export CSV</button>
-    </div>
+    <button class="btn-print" id="printBtn">Print</button>
+    <button class="btn-csv" id="exportCsvBtn">Export CSV</button>
+  </div>
 
-    <!-- SCREEN TABLE (visible normally) -->
-    <div class="screen-table">
-        <table>
-            <thead>
-                <tr>
-                    <th>Field</th>
-                    <th>Blend</th>
-                    <th>Rate</th>
-                    <th>Size</th>
-                    <th>Total</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody id="screenBody"></tbody>
-        </table>
-    </div>
+  <div class="table-wrap screen-table">
+    <table aria-label="Daily Report Table">
+      <thead>
+        <tr>
+          <th style="width:18%;">Field</th>
+          <th style="width:30%;">Blend</th>
+          <th style="width:12%;">Rate</th>
+          <th style="width:12%;">Size</th>
+          <th style="width:12%;">Total</th>
+          <th style="width:16%;">Actions</th>
+        </tr>
+      </thead>
+      <tbody id="screenBody"></tbody>
+    </table>
+  </div>
 
-    <!-- PRINT TABLE (yellow header) -->
-    <div class="print-table">
-        <table>
-            <thead class="print-head">
-                <tr>
-                    <th>Field ID</th>
-                    <th>Fert Blend</th>
-                    <th>Rate (kg/ha)</th>
-                    <th>Field Size (ha)</th>
-                    <th>Total KG</th>
-                </tr>
-            </thead>
-            <tbody id="printBody"></tbody>
-        </table>
-    </div>
+  <!-- print-only table -->
+  <div class="print-table">
+    <table>
+      <thead class="print-head">
+        <tr>
+          <th>Field ID</th>
+          <th>Fert Blend</th>
+          <th>Rate (kg/ha)</th>
+          <th>Field Size (ha)</th>
+          <th>Total KG</th>
+        </tr>
+      </thead>
+      <tbody id="printBody"></tbody>
+    </table>
+  </div>
 
-    <div id="totalsLine"></div>
-
+  <div id="totalsLine">Totals: 0 ha — 0 kg</div>
 </div>
 
 <script src="app.js"></script>
-
 <script>
-// Set date to today
-document.addEventListener("DOMContentLoaded", function () {
-    const d = new Date();
-    document.getElementById("reportDate").value = d.toISOString().split("T")[0];
-});
+  // initialize date to today or existing date param
+  function isoToday(){ return new Date().toISOString().slice(0,10); }
+  document.addEventListener('DOMContentLoaded', () => {
+    const d = isoToday();
+    const input = document.getElementById('reportDate');
+    input.value = d;
+
+    // load initial view
+    if(typeof renderReportForDate === 'function') renderReportForDate(input.value);
+
+    // prev/next button hookup
+    document.getElementById('prevDay').addEventListener('click', () => {
+      const cur = new Date(input.value);
+      cur.setDate(cur.getDate() - 1);
+      input.value = cur.toISOString().slice(0,10);
+      renderReportForDate(input.value);
+    });
+    document.getElementById('nextDay').addEventListener('click', () => {
+      const cur = new Date(input.value);
+      cur.setDate(cur.getDate() + 1);
+      input.value = cur.toISOString().slice(0,10);
+      renderReportForDate(input.value);
+    });
+
+    input.addEventListener('change', () => renderReportForDate(input.value));
+
+    document.getElementById('printBtn').addEventListener('click', () => {
+      // refresh print table before printing
+      if(typeof renderReportForDate === 'function') renderReportForDate(document.getElementById('reportDate').value);
+      setTimeout(()=>window.print(), 200);
+    });
+
+    document.getElementById('exportCsvBtn').addEventListener('click', ()=> {
+      if(typeof exportToCSV === 'function'){
+        const jobs = getJobsForDate(document.getElementById('reportDate').value);
+        exportToCSV(jobs);
+      }
+    });
+  });
 </script>
 
 </body>
