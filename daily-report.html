@@ -1,123 +1,108 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta charset="UTF-8">
 <title>Daily Report</title>
-
-<!-- GOOGLE FONT -->
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
     body {
-        font-family: "Inter", sans-serif;
+        font-family: "Segoe UI", Arial, sans-serif;
+        background: #f3f3f3;
         margin: 0;
         padding: 20px;
-        background: #f5f5f7;
+        text-align: center;
     }
 
     h1 {
-        text-align: center;
+        margin-bottom: 10px;
         font-size: 32px;
-        margin-bottom: 25px;
-        font-weight: 600;
     }
 
     .nav {
-        text-align: center;
         margin-bottom: 20px;
-        font-size: 16px;
     }
-
     .nav a {
         margin: 0 10px;
-        color: #0077cc;
         text-decoration: none;
-        font-weight: 600;
+        font-weight: bold;
+        color: #0066cc;
     }
 
-    .report-container {
-        max-width: 900px;
+    .container {
+        max-width: 1000px;
         margin: auto;
         background: white;
-        padding: 25px;
+        padding: 20px;
         border-radius: 12px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     }
 
     table {
         width: 100%;
         border-collapse: collapse;
-        margin-top: 10px;
+        margin-bottom: 25px;
+        font-size: 16px;
     }
 
     th {
-        background: #0077cc;
+        background: #007acc;
         color: white;
-        padding: 10px;
-        font-weight: 600;
+        padding: 14px;
+        font-size: 16px;
     }
 
     td {
-        padding: 10px;
+        padding: 12px;
         border-bottom: 1px solid #ddd;
-        font-size: 15px;
     }
 
-    tr:hover {
-        background: #f1f7ff;
-    }
-
-    .actions button {
-        padding: 6px 10px;
-        margin-right: 6px;
-        border-radius: 6px;
-        border: none;
-        cursor: pointer;
+    /* Units inside row */
+    .unit {
+        color: #555;
         font-size: 13px;
+        display: block;
+        margin-top: 3px;
     }
 
-    .edit-btn {
-        background: #f7b731;
-        color: white;
-    }
-
-    .delete-btn {
-        background: #ff3b30;
-        color: white;
-    }
-
-    .top-buttons {
-        text-align: center;
-        margin-top: 15px;
-    }
-
-    .top-buttons button {
-        padding: 8px 16px;
-        margin: 5px;
-        border-radius: 6px;
+    /* Buttons */
+    .btn {
+        padding: 6px 14px;
         border: none;
-        background: #0077cc;
+        border-radius: 8px;
         color: white;
         cursor: pointer;
-        font-size: 15px;
+        font-size: 14px;
+    }
+    .editBtn { background: #f1b400; }
+    .deleteBtn { background: #e74c3c; }
+
+    .actionColumn {
+        white-space: nowrap;
     }
 
-    /* PRINT MODE */
+    /* Print-friendly styling */
     @media print {
+        .nav, .btn, #exportCsvBtn, #printBtn {
+            display: none !important;
+        }
         body {
             background: white;
         }
-        .nav, .top-buttons, .actions {
-            display: none;
-        }
-        .report-container {
+        .container {
             box-shadow: none;
-            max-width: 100%;
-            padding: 0;
+            border: none;
         }
-        h1 {
-            margin-top: 0;
+    }
+
+    /* Mobile responsive */
+    @media (max-width: 600px) {
+        table, thead, tbody, tr, th, td {
+            font-size: 13px;
+        }
+        .btn {
+            padding: 4px 10px;
+            font-size: 12px;
         }
     }
 </style>
@@ -132,86 +117,91 @@
     <a href="daily-report.html">Daily Report</a>
 </div>
 
-<div class="report-container">
+<div class="container">
+    <table id="reportTable">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Field</th>
+                <th>Blend</th>
+                <th>Rate (kg/ha)</th>
+                <th>Size (ha)</th>
+                <th>Total (kg)</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody id="reportBody"></tbody>
+    </table>
 
-<table id="reportTable">
-    <thead>
-        <tr>
-            <th>Date</th>
-            <th>Field</th>
-            <th>Blend</th>
-            <th>Rate (kg/ha)</th>
-            <th>Size (ha)</th>
-            <th>Total (kg)</th>
-            <th class="actions">Actions</th>
-        </tr>
-    </thead>
-    <tbody></tbody>
-</table>
-
-<div class="top-buttons">
-    <button onclick="window.print()">Print</button>
-    <button onclick="exportCSV()">Export CSV</button>
-</div>
-
+    <button id="printBtn" class="btn" style="background:#007acc;">Print</button>
+    <button id="exportCsvBtn" class="btn" style="background:#444;">Export CSV</button>
 </div>
 
 <script>
-function loadReport() {
-    const data = JSON.parse(localStorage.getItem("jobs") || "[]");
-    const tbody = document.querySelector("#reportTable tbody");
-    tbody.innerHTML = "";
+    function loadReport() {
+        const data = JSON.parse(localStorage.getItem("dailyReports") || "[]");
+        const body = document.getElementById("reportBody");
+        body.innerHTML = "";
 
-    data.forEach((job, index) => {
-        const tr = document.createElement("tr");
+        data.forEach((row, index) => {
+            const tr = document.createElement("tr");
 
-        tr.innerHTML = `
-            <td>${job.date}</td>
-            <td>${job.field}</td>
-            <td>${job.blend}</td>
-            <td>${job.rate}</td>
-            <td>${job.size}</td>
-            <td>${job.total}</td>
-            <td class="actions">
-                <button class="edit-btn" onclick="editJob(${index})">Edit</button>
-                <button class="delete-btn" onclick="deleteJob(${index})">Delete</button>
-            </td>
-        `;
+            tr.innerHTML = `
+                <td>${row.date}</td>
+                <td>${row.field}</td>
+                <td>${row.blend}</td>
 
-        tbody.appendChild(tr);
-    });
-}
+                <td>
+                    ${row.rate}
+                    <span class="unit">kg/ha</span>
+                </td>
 
-function deleteJob(index) {
-    if (!confirm("Delete this entry?")) return;
-    const data = JSON.parse(localStorage.getItem("jobs") || "[]");
-    data.splice(index, 1);
-    localStorage.setItem("jobs", JSON.stringify(data));
+                <td>
+                    ${row.size}
+                    <span class="unit">ha</span>
+                </td>
+
+                <td>
+                    ${row.total}
+                    <span class="unit">kg</span>
+                </td>
+
+                <td class="actionColumn">
+                    <button class="btn editBtn" onclick="editEntry(${index})">Edit</button>
+                    <button class="btn deleteBtn" onclick="deleteEntry(${index})">Delete</button>
+                </td>
+            `;
+
+            body.appendChild(tr);
+        });
+    }
+
+    function deleteEntry(index) {
+        const data = JSON.parse(localStorage.getItem("dailyReports") || "[]");
+        data.splice(index, 1);
+        localStorage.setItem("dailyReports", JSON.stringify(data));
+        loadReport();
+    }
+
+    function editEntry(index) {
+        alert("Edit popup coming next — still linking it.");
+    }
+
+    document.getElementById("printBtn").onclick = () => window.print();
+
+    document.getElementById("exportCsvBtn").onclick = () => {
+        const data = JSON.parse(localStorage.getItem("dailyReports") || "[]");
+        let csv = "Date,Field,Blend,Rate,Size,Total\n";
+        data.forEach(r => csv += `${r.date},${r.field},${r.blend},${r.rate},${r.size},${r.total}\n`);
+        const blob = new Blob([csv], { type: "text/csv" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "daily-report.csv";
+        a.click();
+    };
+
     loadReport();
-}
-
-function editJob(index) {
-    const job = JSON.parse(localStorage.getItem("jobs"))[index];
-    alert("Edit in progress – I can also build full edit form for you.");
-}
-
-function exportCSV() {
-    const rows = [["Date","Field","Blend","Rate","Size","Total"]];
-    const data = JSON.parse(localStorage.getItem("jobs") || "[]");
-
-    data.forEach(j => rows.push([j.date,j.field,j.blend,j.rate,j.size,j.total]));
-
-    let csv = rows.map(r => r.join(",")).join("\n");
-    let blob = new Blob([csv], {type:"text/csv"});
-    let url = URL.createObjectURL(blob);
-
-    let a = document.createElement("a");
-    a.href = url;
-    a.download = "daily-report.csv";
-    a.click();
-}
-
-loadReport();
 </script>
 
 </body>
