@@ -1,9 +1,10 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Daily Work</title>
+
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 </head>
@@ -33,7 +34,16 @@
         <input id="inputBlend" type="text" placeholder="Blend" />
       </div>
 
+      <!-- Rate Type Selection (Normal / N-Sensor) -->
       <div class="form-row">
+        <label for="inputRateType">Rate Type</label>
+        <select id="inputRateType">
+          <option value="normal">Normal (kg/ha)</option>
+          <option value="nsensor">N-Sensor (manual total kg)</option>
+        </select>
+      </div>
+
+      <div class="form-row" id="rateRow">
         <label for="inputRate">Rate (kg/ha)</label>
         <input id="inputRate" type="number" placeholder="e.g. 250" />
       </div>
@@ -41,6 +51,12 @@
       <div class="form-row">
         <label for="inputSize">Size (ha)</label>
         <input id="inputSize" type="number" placeholder="e.g. 9" />
+      </div>
+
+      <!-- N-Sensor: Manual Total KG input -->
+      <div class="form-row" id="manualTotalRow" style="display:none;">
+        <label for="inputTotal">Total KG</label>
+        <input id="inputTotal" type="number" placeholder="Total KG" />
       </div>
 
       <button id="addBtn" class="btn-primary">Add to Report</button>
@@ -56,33 +72,56 @@
     const fieldEl = document.getElementById('inputField');
     const blendEl = document.getElementById('inputBlend');
     const rateEl = document.getElementById('inputRate');
+    const rateTypeEl = document.getElementById('inputRateType');
     const sizeEl = document.getElementById('inputSize');
+    const manualTotalEl = document.getElementById('inputTotal');
     const addBtn = document.getElementById('addBtn');
     const addResult = document.getElementById('addResult');
+    const rateRow = document.getElementById('rateRow');
+    const manualTotalRow = document.getElementById('manualTotalRow');
 
     // fill date with today (ISO)
     function isoToday(){ return new Date().toISOString().slice(0,10); }
     dateEl.value = isoToday();
 
-    addBtn.addEventListener('click', ()=>{
+    // Toggle visibility based on rate type
+    rateTypeEl.addEventListener('change', function() {
+      if (this.value === 'nsensor') {
+        rateRow.style.display = 'none';
+        manualTotalRow.style.display = 'block';
+      } else {
+        rateRow.style.display = 'block';
+        manualTotalRow.style.display = 'none';
+      }
+    });
+
+    addBtn.addEventListener('click', () => {
       const date = dateEl.value;
       const field = fieldEl.value.trim();
       const blend = blendEl.value.trim();
-      const rate = Number(rateEl.value) || 0;
+      const rateType = rateTypeEl.value;
+      const rate = rateType === 'normal' ? Number(rateEl.value) || 0 : 0;
       const size = Number(sizeEl.value) || 0;
+      const total = rateType === 'normal' ? rate * size : Number(manualTotalEl.value) || 0;
 
-      if(!date || !field){ addResult.style.display='block'; addResult.textContent='Please enter date and field.'; return; }
+      if (!date || !field) {
+        addResult.style.display = 'block';
+        addResult.textContent = 'Please enter date and field.';
+        return;
+      }
 
-      const job = { date, field, blend, rate, size, total: rate*size };
+      const job = { date, field, blend, rateType, rate, size, total };
       window.FarmApp.addJob(job);
 
-      addResult.style.display='block';
-      addResult.textContent = 'Saved ✓ — ' + (field||'') + ' ' + size + ' ha';
+      addResult.style.display = 'block';
+      addResult.textContent = `Saved ✓ — ${field} ${size} ha`;
 
-      // clear size only (keep rate/blend/field)
+      // Clear the input fields (except for rate/blend/field)
       sizeEl.value = '';
+      manualTotalEl.value = '';
+
       // small flash
-      setTimeout(()=> addResult.style.display='none', 1400);
+      setTimeout(() => addResult.style.display = 'none', 1400);
     });
 
   })();
