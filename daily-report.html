@@ -4,12 +4,50 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Daily Report</title>
+
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css">
+<!-- If you have a style.css keep it; page styles below are minimal to ensure print layout -->
+<style>
+  :root{ --blue:#0b76c3; --yellow:#ffdd3c; --muted:#9aa0a6; }
+  *{box-sizing:border-box;font-family:Inter,system-ui,-apple-system;}
+  body{margin:0;background:#f3f4f6;color:#111;}
+  .page{max-width:1200px;margin:28px auto;padding:18px;}
+  header h1{text-align:center;font-size:34px;margin:6px 0;}
+  .nav{text-align:center;margin-bottom:18px;}
+  .nav a{color:var(--blue);text-decoration:none;font-weight:600;margin:0 8px;}
+  .card{background:#fff;padding:18px;border-radius:12px;box-shadow:0 6px 18px rgba(0,0,0,0.06);}
+  .controls{display:flex;gap:12px;align-items:center;justify-content:center;margin-bottom:14px;flex-wrap:wrap;}
+  .btn{padding:8px 12px;border-radius:8px;cursor:pointer;border:0;font-weight:700;}
+  .btn-ghost{background:#efefef;color:#111;border:1px solid #ddd;}
+  .btn-main{background:var(--blue);color:#fff;}
+  .table-wrap{overflow:auto;border-radius:10px;}
+  table{width:100%;border-collapse:collapse;min-width:720px;}
+  thead th{background:var(--blue);color:white;padding:14px;text-align:left;font-size:14px;border-radius:8px 8px 0 0;}
+  tbody td{border-bottom:1px solid #eaeaea;padding:14px;}
+  .unit{color:#777;font-size:12px;margin-left:6px;}
+  .totals{margin-top:14px;font-weight:700;}
+  .btn-edit{background:#f6c85f;border-radius:8px;padding:6px 10px;border:1px solid #b78f2a;}
+  .btn-del{background:#ff6b6b;border-radius:8px;padding:6px 10px;border:1px solid #b84a48;color:#fff;}
+  /* print table (hidden on screen) */
+  .print-table{display:none;}
+  /* print CSS */
+  @media print{
+    body{background:#fff;}
+    .nav,.controls,.btn{display:none!important;}
+    .card{box-shadow:none;padding:0;}
+    .print-table{display:block!important;margin-top:10px;}
+    table{width:100%;border-collapse:collapse;font-size:12px;}
+    thead.print-head th{
+      background:var(--yellow)!important;color:#000!important;border:1px solid #000;padding:6px;text-align:center;font-weight:700;
+    }
+    .print-table td{border:1px solid #000;padding:6px;}
+    @page{size:A4 portrait;margin:10mm;}
+  }
+</style>
 </head>
 
 <body>
-<div class="container">
+<div class="page">
   <header>
     <h1>Daily Report</h1>
     <div class="nav">
@@ -20,19 +58,17 @@
 
   <div class="card">
 
-    <!-- controls -->
-    <div style="display:flex;gap:12px;align-items:center;justify-content:center;margin-bottom:12px;flex-wrap:wrap">
-      <button id="prevDay" class="btn">◀ Prev</button>
-      <input id="reportDate" type="date" class="date-input">
-      <button id="nextDay" class="btn">Next ▶</button>
+    <div class="controls">
+      <button id="prevDay" class="btn btn-ghost">◀ Prev</button>
+      <input id="reportDate" type="date" style="padding:8px;border-radius:8px;background:transparent;border:1px solid rgba(0,0,0,0.06)">
+      <button id="nextDay" class="btn btn-ghost">Next ▶</button>
 
-      <div style="width:16px"></div>
+      <div style="width:18px"></div>
 
-      <button id="printBtn" class="btn btn-print">Print</button>
-      <button id="csvBtn" class="btn btn-csv">Export CSV</button>
+      <button id="printBtn" class="btn btn-main">Print</button>
+      <button id="exportCsvBtn" class="btn btn-ghost">Export CSV</button>
     </div>
 
-    <!-- SCREEN TABLE -->
     <div class="table-wrap screen-table">
       <table>
         <thead>
@@ -40,7 +76,7 @@
             <th>Date</th>
             <th>Field</th>
             <th>Blend</th>
-            <th>Rate</th>
+            <th>Rate (kg/ha)</th>
             <th>Size (ha)</th>
             <th>Total (kg)</th>
             <th>Actions</th>
@@ -51,150 +87,233 @@
     </div>
 
     <div id="totals" class="totals"></div>
+
   </div>
 
   <!-- PRINT TABLE -->
   <div class="print-table">
-    <div class="print-wrapper">
-      <div class="print-inner">
-        <div style="text-align:center;margin-top:20px">
-          <h2 style="margin:0">Daily Report</h2>
-          <div style="font-weight:700;margin-top:4px">
-            Report for: <span id="printDateLabel">—</span>
-          </div>
-        </div>
-
-        <table style="margin-top:14px">
-          <thead class="print-head">
-            <tr>
-              <th>Field ID</th>
-              <th>Fert Blend</th>
-              <th>Rate</th>
-              <th>Field Size (ha)</th>
-              <th>Total KG</th>
-            </tr>
-          </thead>
-          <tbody id="printBody"></tbody>
-        </table>
-
-        <div id="printTotals" style="margin-top:10px;font-weight:700"></div>
-      </div>
+    <div style="text-align:center;margin-top:20px">
+      <h2 style="margin:0">Daily Report</h2>
+      <div style="font-weight:700;margin-top:4px">Report for: <span id="printDateDisplay">—</span></div>
     </div>
+
+    <table style="margin-top:12px">
+      <thead class="print-head">
+        <tr>
+          <th>Field ID</th>
+          <th>Fert Blend</th>
+          <th>Rate (kg/ha)</th>
+          <th>Field Size (ha)</th>
+          <th>Total KG</th>
+        </tr>
+      </thead>
+      <tbody id="printBody"></tbody>
+    </table>
+    <div style="margin-top:10px;font-weight:700" id="printTotals"></div>
   </div>
 
 </div>
 
-<!-- LOAD FarmApp FIRST -->
-<script src="app.js"></script>
-
 <script>
-(function(){
+/*
+  daily-report.html script
+  - Renders jobs for chosen date
+  - Shows "N-Sensor" in Rate column if job.rateType === 'nsensor'
+  - Adds units in screen and print rows
+  - Wires edit/delete via delegation and export/print
+  - Uses window.FarmApp API (must be present in app.js)
+*/
 
-  // elements
-  const reportDateEl = document.getElementById("reportDate");
-  const screenBody = document.getElementById("screenBody");
-  const printBody  = document.getElementById("printBody");
-  const totalsEl   = document.getElementById("totals");
-  const printTotals= document.getElementById("printTotals");
-  const printDateLabel = document.getElementById("printDateLabel");
-
-  // helper
-  function fmt(n){
-    return isNaN(n) ? n : Number(n).toLocaleString();
-  }
-  function escape(s){
-    return String(s||"").replace(/[&<>"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[m]));
-  }
+(function () {
+  const reportDateEl = document.getElementById('reportDate');
+  const prevBtn = document.getElementById('prevDay');
+  const nextBtn = document.getElementById('nextDay');
+  const screenBody = document.getElementById('screenBody');
+  const printBody = document.getElementById('printBody');
+  const totalsEl = document.getElementById('totals');
+  const printDateDisplay = document.getElementById('printDateDisplay');
+  const printTotals = document.getElementById('printTotals');
+  const printBtn = document.getElementById('printBtn');
+  const exportCsvBtn = document.getElementById('exportCsvBtn');
 
   function isoToday(){ return new Date().toISOString().slice(0,10); }
   reportDateEl.value = isoToday();
 
-  // RENDER FUNCTION ----------------------------------
-  function renderForDate(d){
+  function formatNum(n, decimals=0){
+    if (n === null || n === undefined || n === '') return '';
+    const num = Number(n);
+    if (isNaN(num)) return n;
+    return num.toLocaleString(undefined, { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+  }
 
-    screenBody.innerHTML = "";
-    printBody.innerHTML  = "";
-    printDateLabel.textContent = d;
+  function escapeHtml(s){ return String(s||'').replace(/[&<>"]/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m])); }
 
-    const jobs = FarmApp.getJobsForDate(d);
+  function renderForDate(isoDate){
+    screenBody.innerHTML = '';
+    printBody.innerHTML = '';
+    printDateDisplay.textContent = isoDate;
 
-    if(!jobs.length){
-      totalsEl.textContent = "Totals: 0 ha → 0 kg";
-      printTotals.textContent = "";
+    // get jobs from FarmApp
+    const jobs = (window.FarmApp && typeof window.FarmApp.getJobsForDate === 'function') ? window.FarmApp.getJobsForDate(isoDate) : [];
+
+    if (!jobs || !jobs.length){
+      totalsEl.textContent = 'Totals: 0 ha → 0 kg';
+      printTotals.textContent = '';
       return;
     }
 
-    let totalHa = 0;
-    let totalKg = 0;
+    let totalHa = 0, totalKg = 0;
 
+    // iterate and build rows
     jobs.forEach(job => {
+      const rateType = job.rateType || job.type || 'normal'; // support both keys
+      const rate = (rateType === 'nsensor') ? null : (Number(job.rate) || 0);
+      const size = Number(job.size) || 0;
+      // total: prefer explicit total (manual for nsensor) else rate*size
+      const total = (job.total !== undefined && job.total !== null && job.total !== '') ? Number(job.total) : (rateType === 'nsensor' ? (Number(job.total)||0) : (rate * size));
 
-      const rateText =
-        job.rateType === "nsensor"
-        ? "N-Sensor"
-        : fmt(job.rate) + " kg/ha";
+      totalHa += size;
+      totalKg += Number(total) || 0;
 
-      totalHa += Number(job.size)||0;
-      totalKg += Number(job.total)||0;
+      // SCREEN ROW - include units. If N-sensor display "N-Sensor" rather than "0 kg/ha"
+      const rateDisplay = (rateType === 'nsensor') ? 'N-Sensor' : (formatNum(rate) + ' <span class="unit">kg/ha</span>');
+      const sizeDisplay = formatNum(size) + ' <span class="unit">ha</span>';
+      const totalDisplay = formatNum(total) + ' <span class="unit">kg</span>';
 
-      // SCREEN ROW
-      screenBody.innerHTML += `
-        <tr>
-          <td>${job.date}</td>
-          <td>${escape(job.field)}</td>
-          <td>${escape(job.blend)}</td>
-          <td>${rateText}</td>
-          <td>${fmt(job.size)}</td>
-          <td>${fmt(job.total)}</td>
-          <td>
-            <button class="btn-edit" data-id="${job.id}">Edit</button>
-            <button class="btn-del"  data-id="${job.id}" style="margin-left:6px">Delete</button>
-          </td>
-        </tr>`;
+      const tr = document.createElement('tr');
+      tr.dataset.id = job.id || '';
+      tr.innerHTML = `
+        <td>${escapeHtml(job.date)}</td>
+        <td>${escapeHtml(job.field)}</td>
+        <td>${escapeHtml(job.blend)}</td>
+        <td>${rateDisplay}</td>
+        <td>${sizeDisplay}</td>
+        <td>${totalDisplay}</td>
+        <td>
+          <button class="btn-edit" data-id="${job.id}">Edit</button>
+          <button class="btn-del" data-id="${job.id}" style="margin-left:8px">Delete</button>
+        </td>
+      `;
+      screenBody.appendChild(tr);
 
-      // PRINT ROW
-      printBody.innerHTML += `
-        <tr>
-          <td>${escape(job.field)}</td>
-          <td>${escape(job.blend)}</td>
-          <td>${rateText}</td>
-          <td>${fmt(job.size)}</td>
-          <td>${fmt(job.total)}</td>
-        </tr>`;
+      // PRINT ROW - show explicit text for rate (N-Sensor or numeric + unit)
+      const pr = document.createElement('tr');
+      const ratePrint = (rateType === 'nsensor') ? 'N-Sensor' : (formatNum(rate) + ' kg/ha');
+      pr.innerHTML = `
+        <td>${escapeHtml(job.field)}</td>
+        <td>${escapeHtml(job.blend)}</td>
+        <td style="text-align:right">${ratePrint}</td>
+        <td style="text-align:right">${formatNum(size)} ha</td>
+        <td style="text-align:right">${formatNum(total)} kg</td>
+      `;
+      printBody.appendChild(pr);
     });
 
-    totalsEl.textContent =
-      `Totals: ${fmt(totalHa)} ha → ${fmt(totalKg)} kg`;
+    totalsEl.textContent = `Totals: ${formatNum(totalHa,2)} ha → ${formatNum(totalKg,2)} kg`;
+    printTotals.textContent = `Totals: ${formatNum(totalHa,2)} ha — ${formatNum(totalKg,2)} kg`;
 
-    printTotals.textContent =
-      `Totals: ${fmt(totalHa)} ha — ${fmt(totalKg)} kg`;
+    // Wire buttons using event delegation: not ideal to attach per-element many times; use root listener below
   }
 
-  // navigation
-  prevDay.onclick = function(){
-    const d = new Date(reportDateEl.value);
-    d.setDate(d.getDate()-1);
-    reportDateEl.value = d.toISOString().slice(0,10);
+  // Delegated click handling for Edit/Delete from screenBody
+  screenBody.addEventListener('click', function(e){
+    const el = e.target;
+    if (el.matches('.btn-del')){
+      const id = el.dataset.id;
+      if (!id) return;
+      if (!confirm('Delete this job?')) return;
+      if (window.FarmApp && typeof window.FarmApp.deleteJobById === 'function'){
+        window.FarmApp.deleteJobById(id);
+        renderForDate(reportDateEl.value);
+      } else {
+        alert('FarmApp.deleteJobById not available');
+      }
+    } else if (el.matches('.btn-edit')){
+      const id = el.dataset.id;
+      if (!id) return;
+      // load job
+      const jobs = window.FarmApp && window.FarmApp.loadJobs ? window.FarmApp.loadJobs() : [];
+      const job = jobs.find(j=>j.id===id);
+      if (!job) return;
+      // prompt for edits (simple)
+      const nf = prompt('Field:', job.field); if (nf === null) return;
+      const nb = prompt('Blend:', job.blend); if (nb === null) return;
+      // Ask if this row is N-Sensor or Normal
+      const nrType = prompt('Rate type ("normal" or "nsensor"):', job.rateType || 'normal'); if (nrType === null) return;
+      let nr = job.rate;
+      let nTotal = job.total;
+      if (nrType === 'nsensor'){
+        const nt = prompt('Total KG (manual):', job.total || '');
+        if (nt === null) return;
+        nTotal = Number(nt) || 0;
+        nr = 0;
+      } else {
+        const rIn = prompt('Rate (kg/ha):', job.rate || '');
+        if (rIn === null) return;
+        nr = Number(rIn) || 0;
+        // recalc total from size unless user wants to override (no prompt here)
+        nTotal = nr * (Number(job.size) || 0);
+      }
+      const ns = prompt('Size (ha):', job.size || '');
+      if (ns === null) return;
+      job.field = nf;
+      job.blend = nb;
+      job.rateType = nrType;
+      job.rate = nr;
+      job.size = Number(ns) || 0;
+      job.total = Number(nTotal) || 0;
+      if (window.FarmApp && typeof window.FarmApp.updateJob === 'function'){
+        window.FarmApp.updateJob(job);
+        renderForDate(reportDateEl.value);
+      } else {
+        alert('FarmApp.updateJob not available');
+      }
+    }
+  });
+
+  // Navigation
+  prevBtn.addEventListener('click', function(){
+    const dt = new Date(reportDateEl.value);
+    dt.setDate(dt.getDate()-1);
+    reportDateEl.value = dt.toISOString().slice(0,10);
     renderForDate(reportDateEl.value);
-  };
-  nextDay.onclick = function(){
-    const d = new Date(reportDateEl.value);
-    d.setDate(d.getDate()+1);
-    reportDateEl.value = d.toISOString().slice(0,10);
+  });
+  nextBtn.addEventListener('click', function(){
+    const dt = new Date(reportDateEl.value);
+    dt.setDate(dt.getDate()+1);
+    reportDateEl.value = dt.toISOString().slice(0,10);
     renderForDate(reportDateEl.value);
-  };
+  });
+  reportDateEl.addEventListener('change', function(){ renderForDate(reportDateEl.value); });
 
-  reportDateEl.onchange = () => renderForDate(reportDateEl.value);
-
-  printBtn.onclick = () => {
+  // Print - ensure print view is up-to-date, then print
+  printBtn.addEventListener('click', function(){
     renderForDate(reportDateEl.value);
-    setTimeout(()=>print(),200);
-  };
+    setTimeout(()=>window.print(), 180);
+  });
 
-  csvBtn.onclick = () =>
-    FarmApp.exportCsvForDate(reportDateEl.value);
+  // Export CSV for displayed date
+  exportCsvBtn.addEventListener('click', function(){
+    const isoDate = reportDateEl.value;
+    const rows = window.FarmApp && typeof window.FarmApp.getJobsForDate === 'function' ? window.FarmApp.getJobsForDate(isoDate) : [];
+    if (!rows || !rows.length){
+      alert('No data for selected date');
+      return;
+    }
+    let csv = 'Date,Field,Blend,RateType,Rate,Size,Total\n';
+    rows.forEach(r=>{
+      const rateType = r.rateType || 'normal';
+      const rateField = (rateType === 'nsensor') ? 'N-Sensor' : String(r.rate || 0);
+      csv += `${r.date},${(r.field||'')},${(r.blend||'')},${rateType},${rateField},${r.size||0},${r.total||0}\n`;
+    });
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `daily-report-${isoDate}.csv`;
+    a.click();
+  });
 
-  // INITIAL DRAW
+  // initial paint
   renderForDate(reportDateEl.value);
 
 })();
