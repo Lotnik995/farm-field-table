@@ -51,21 +51,21 @@
         margin-top: 15px;
     }
 
-    input, select {
+    input {
         width: 100%;
-        padding: 10px;
+        padding: 12px;
         margin-top: 6px;
-        font-size: 15px;
+        font-size: 16px;
         border: 1px solid #ccc;
         border-radius: 8px;
     }
 
     button {
-        margin-top: 20px;
+        margin-top: 25px;
         width: 100%;
-        padding: 12px;
+        padding: 14px;
         border: none;
-        font-size: 16px;
+        font-size: 17px;
         border-radius: 8px;
         cursor: pointer;
         background: #0077cc;
@@ -80,10 +80,10 @@
     .result-box {
         margin-top: 20px;
         padding: 15px;
-        background: #f1f7ff;
+        background: #e8f2ff;
         border-radius: 10px;
-        font-size: 17px;
-        font-weight: 500;
+        font-size: 18px;
+        font-weight: 600;
         text-align: center;
     }
 </style>
@@ -110,10 +110,10 @@
     <input type="text" id="blend" placeholder="Blend name">
 
     <label>Rate (kg/ha)</label>
-    <input type="number" id="rate" placeholder="e.g. 120">
+    <input type="number" id="rate" placeholder="e.g. 250">
 
     <label>Size (ha)</label>
-    <input type="number" id="size" placeholder="e.g. 18">
+    <input type="number" id="size" placeholder="e.g. 7">
 
     <button onclick="addJob()">Add to Report</button>
 
@@ -122,6 +122,18 @@
 </div>
 
 <script>
+// -----------------------------
+// LOAD SAVED DEFAULT VALUES
+// -----------------------------
+window.onload = function () {
+    document.getElementById("field").value = localStorage.getItem("lastField") || "";
+    document.getElementById("blend").value = localStorage.getItem("lastBlend") || "";
+    document.getElementById("rate").value = localStorage.getItem("lastRate") || "";
+};
+
+// -----------------------------
+// ADD JOB FUNCTION
+// -----------------------------
 function addJob() {
     const date = document.getElementById("date").value;
     const field = document.getElementById("field").value;
@@ -136,20 +148,22 @@ function addJob() {
 
     const total = rate * size;
 
-    // Show calculation
+    // Display total
     const resultBox = document.getElementById("result");
     resultBox.style.display = "block";
     resultBox.innerHTML = `Total: <strong>${total} kg</strong>`;
 
-    // Save to localStorage
+    // Save job to report
     const jobs = JSON.parse(localStorage.getItem("jobs") || "[]");
     jobs.push({ date, field, blend, rate, size, total });
     localStorage.setItem("jobs", JSON.stringify(jobs));
 
-    // Reset inputs
-    document.getElementById("field").value = "";
-    document.getElementById("blend").value = "";
-    document.getElementById("rate").value = "";
+    // Save default values so they stay
+    localStorage.setItem("lastField", field);
+    localStorage.setItem("lastBlend", blend);
+    localStorage.setItem("lastRate", rate);
+
+    // Clear ONLY size field
     document.getElementById("size").value = "";
 }
 </script>
