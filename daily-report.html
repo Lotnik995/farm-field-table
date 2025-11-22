@@ -22,8 +22,6 @@
     margin:0;
     background:#f3f4f6;
     color:#111827;
-    -webkit-font-smoothing:antialiased;
-    -moz-osx-font-smoothing:grayscale;
   }
 
   .page {
@@ -45,7 +43,6 @@
   }
   .nav a{ color:var(--blue); text-decoration:none; margin:0 8px; font-weight:600; }
 
-  /* Card */
   .card{
     background:#fff;
     border-radius:12px;
@@ -53,365 +50,254 @@
     box-shadow:0 8px 18px rgba(15,23,42,0.06);
   }
 
-  /* Top info line (date only once for print) */
   .report-top{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    padding:6px 8px;
-    gap:12px;
+    text-align:center;
     margin-bottom:12px;
-    flex-wrap:wrap;
   }
-  .report-top .title {
-    text-align:center;
-    flex:1 1 100%;
-  }
-  .report-top .title h2{ margin:6px 0; font-size:22px; font-weight:700; }
-  .report-top .date {
-    color:var(--muted);
+  .report-top h2{ margin:6px 0; font-size:24px; font-weight:700; }
+  .report-top .date{
+    margin-top:4px;
+    color:#555;
     font-weight:600;
-    text-align:center;
-    width:100%;
-    margin-bottom:8px;
   }
 
-  /* Table styles -> screen */
   .table-wrap {
     overflow:auto;
-    border-radius:8px;
   }
+
   table {
     width:100%;
-    border-collapse:separate;
-    border-spacing:0;
+    border-collapse:collapse;
     font-size:15px;
-    min-width:720px; /* allow desktop detailed view */
   }
+
   thead th{
     background:var(--table-head);
     color:#fff;
-    padding:14px 12px;
-    font-weight:700;
+    padding:10px;
     text-align:left;
-  }
-  tbody td{
-    border-bottom:1px solid #efefef;
-    padding:14px 12px;
-    vertical-align:middle;
-    color:#111827;
-  }
-
-  /* units inline (smaller & muted) */
-  .unit { color:var(--muted); font-size:12px; display:inline-block; margin-left:6px; vertical-align:middle; }
-
-  /* actions buttons on screen only */
-  .btn {
-    display:inline-block;
-    padding:8px 12px;
-    border-radius:8px;
-    text-decoration:none;
-    cursor:pointer;
     font-weight:700;
-    font-size:13px;
-  }
-  .btn-edit{ background:#f6c85f; color:#111827; border:none; }
-  .btn-del{ background:#ff6b6b; color:#fff; border:none; margin-left:8px; }
-
-  /* footer controls */
-  .controls{ text-align:center; margin-top:18px; display:flex; gap:12px; justify-content:center; flex-wrap:wrap; }
-  .controls .btn-main{ background:var(--blue); color:#fff; padding:10px 18px; border-radius:8px; border:none; font-weight:700; }
-  .controls .btn-ghost{ background:#333; color:#fff; border:none; padding:10px 18px; border-radius:8px; }
-
-  /* compact small font for denser view */
-  .compact td{ padding:9px 10px; font-size:13px; }
-  thead.compact th{ padding:11px 10px; font-size:13px; }
-
-  /* Mobile behaviour: allow zoom & vertical scroll only */
-  @media (max-width:640px){
-    .page{ padding:12px; }
-    table{ min-width:640px; } /* keep columns, user can zoom */
-    .report-top .title h2{ font-size:26px; }
   }
 
-  /* ---------- PRINT STYLES ---------- */
+  tbody td{
+    padding:8px 10px;
+    border-bottom:1px solid #e5e5e5;
+  }
+
+  .unit{
+    font-size:11px;
+    color:#666;
+    margin-left:4px;
+  }
+
+  .btn{
+    padding:6px 10px;
+    font-size:12px;
+    border:none;
+    border-radius:6px;
+    cursor:pointer;
+  }
+  .btn-edit{ background:#f6c85f; }
+  .btn-del{ background:#ff6b6b; color:#fff; margin-left:6px; }
+
+  .totals{
+    font-weight:700;
+    margin-top:12px;
+    font-size:16px;
+  }
+
+  .controls{
+    margin-top:20px;
+    text-align:center;
+  }
+  .controls button{
+    padding:10px 14px;
+    margin:0 6px;
+    border:none;
+    border-radius:8px;
+    font-weight:700;
+    cursor:pointer;
+  }
+  .btn-main{ background:var(--blue); color:#fff; }
+  .btn-ghost{ background:#333; color:#fff; }
+
+  /* PRINT MODE */
   @media print{
-    body{ background:#fff; color:#000; }
-    .page{ max-width:780px; margin:0 auto; padding:8mm; }
-    .nav, .controls, .btn, .btn-edit, .btn-del { display:none !important; }
-    .card { box-shadow:none; border-radius:0; padding:0; }
-    /* Hide screen table; show print table */
-    .screen-table { display:none !important; }
-    .print-table { display:block !important; width:100%; }
-    /* Print table tiny compact */
-    .print-table table { width:100%; border-collapse:collapse; font-size:11px; }
-    .print-table thead th { background:#000; color:#fff; padding:6px; }
-    .print-table td, .print-table th { border:1px solid #000; padding:6px; text-align:left; }
-    .report-top .title h2{ font-size:20px; text-align:center; margin:6px 0; }
-    .report-top .date { text-align:center; font-weight:700; }
-    /* remove Actions column on print */
-    .print-hide { display:none !important; }
-    @page { size: A4 portrait; margin:10mm; }
+    body{ background:#fff; }
+    .nav, .controls, .btn-edit, .btn-del{ display:none !important; }
+    .card{ box-shadow:none; padding:0; }
+    .screen-table{ display:none!important; }
+    .print-table{ display:block!important; }
+
+    table{
+      border-collapse:collapse;
+      font-size:11px;
+    }
+
+    th,td{
+      border:1px solid #000;
+      padding:5px;
+    }
+
+    @page { size:A4 portrait; margin:10mm; }
   }
 
-  /* Print-friendly default: hide print-table on screen */
   .print-table{ display:none; }
-
-  /* totals line */
-  .totals { margin-top:12px; font-weight:700; color:#111827; text-align:left; padding-top:8px; }
 
 </style>
 </head>
 <body>
 
 <div class="page">
-  <header>
-    <h1>Daily Report</h1>
-    <div class="nav">
-      <a href="index.html">Daily Work</a> |
-      <a href="daily-report.html">Daily Report</a>
-    </div>
-  </header>
 
-  <div class="card">
-    <div class="report-top" role="region" aria-label="report top">
-      <div class="title">
-        <h2>Daily Report</h2>
-      </div>
-      <div class="date" id="reportDateDisplay">Report for: <span id="displayDate">—</span></div>
-    </div>
-
-    <!-- SCREEN TABLE (interactive, actions visible) -->
-    <div class="table-wrap screen-table">
-      <table id="screenTable" aria-label="Daily Report Table">
-        <thead class="compact">
-          <tr>
-            <th style="width:12%;">Date</th>
-            <th style="width:12%;">Field</th>
-            <th style="width:20%;">Blend</th>
-            <th style="width:12%;">Rate</th>
-            <th style="width:10%;">Size</th>
-            <th style="width:12%;">Total</th>
-            <th style="width:12%;">Actions</th>
-          </tr>
-        </thead>
-        <tbody id="screenBody">
-          <!-- rows inserted by JS -->
-        </tbody>
-      </table>
-    </div>
-
-    <!-- PRINT TABLE (hidden on screen; visible in print) -->
-    <div class="print-table" id="printTableWrap">
-      <!-- a simple table that will be filled by JS when printing or rendering -->
-      <table id="printTable" aria-hidden="true">
-        <thead>
-          <tr>
-            <!-- Date is printed once at top; table does not include Actions column for print -->
-            <th style="width:18%;">Date</th>
-            <th style="width:18%;">Field</th>
-            <th style="width:30%;">Blend</th>
-            <th style="width:10%;">Rate</th>
-            <th style="width:9%;">Size</th>
-            <th style="width:15%;">Total</th>
-          </tr>
-        </thead>
-        <tbody id="printBody"></tbody>
-      </table>
-    </div>
-
-    <div class="totals" id="totalsLine">Totals: 0 ha — 0 kg</div>
-
-    <div class="controls" style="margin-top:18px;">
-      <button class="btn-main" id="printBtn">Print</button>
-      <button class="btn-ghost" id="exportCsvBtn">Export CSV</button>
-    </div>
-
+<header>
+  <h1>Daily Report</h1>
+  <div class="nav">
+    <a href="index.html">Daily Work</a> |
+    <a href="daily-report.html">Daily Report</a>
   </div>
+</header>
+
+<div class="card">
+
+  <div class="report-top">
+    <h2>Daily Report</h2>
+    <div class="date">Report for: <span id="displayDate">—</span></div>
+  </div>
+
+  <!-- SCREEN TABLE -->
+  <div class="table-wrap screen-table">
+    <table>
+      <thead>
+        <tr>
+          <th>Field ID</th>
+          <th>Fert Blend</th>
+          <th>Rate (kg/ha)</th>
+          <th>Field Size (ha)</th>
+          <th>Total KG</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="screenBody"></tbody>
+    </table>
+  </div>
+
+  <!-- PRINT TABLE -->
+  <div class="print-table">
+    <table>
+      <thead>
+        <tr>
+          <th>Field ID</th>
+          <th>Fert Blend</th>
+          <th>Rate (kg/ha)</th>
+          <th>Field Size (ha)</th>
+          <th>Total KG</th>
+        </tr>
+      </thead>
+      <tbody id="printBody"></tbody>
+    </table>
+  </div>
+
+  <div class="totals" id="totalsLine">Totals: 0 ha → 0 kg</div>
+
+  <div class="controls">
+    <button class="btn-main" onclick="window.print()">Print</button>
+    <button class="btn-ghost" id="exportCsvBtn">Export CSV</button>
+  </div>
+
+</div>
 </div>
 
 <script>
-/*
-  daily-report.html (single-file)
-  - Loads jobs from localStorage "jobs" key (same format used across your app)
-  - Renders screen table with Edit/Delete buttons
-  - Builds a compact print-table used only when printing (no actions column)
-  - Date shown once at top for print (and screen)
-  - Units inline: kg/ha, ha, kg
-  - Export CSV and Print functions included
-*/
+function loadJobs(){
+  try{
+    return JSON.parse(localStorage.getItem("jobs")||"[]");
+  }catch(e){ return []; }
+}
 
-(function(){
-  const screenBody = document.getElementById('screenBody');
-  const printBody = document.getElementById('printBody');
-  const totalsLine = document.getElementById('totalsLine');
-  const displayDate = document.getElementById('displayDate');
-  const printBtn = document.getElementById('printBtn');
-  const exportCsvBtn = document.getElementById('exportCsvBtn');
+function saveJobs(j){
+  localStorage.setItem("jobs",JSON.stringify(j));
+}
 
-  // Load jobs from localStorage (array of objects: {date, field, blend, rate, size, total})
-  function loadJobs(){
-    try {
-      const raw = localStorage.getItem('jobs') || '[]';
-      const arr = JSON.parse(raw);
-      return Array.isArray(arr) ? arr : [];
-    } catch(e){
-      console.error('jobs parse error',e);
-      return [];
-    }
+function fmt(n){ return Number(n).toFixed(n%1?1:0); }
+
+function render(){
+  let jobs = loadJobs();
+  let sBody = document.getElementById("screenBody");
+  let pBody = document.getElementById("printBody");
+  let totals = document.getElementById("totalsLine");
+
+  sBody.innerHTML = "";
+  pBody.innerHTML = "";
+
+  if(jobs.length===0){
+    document.getElementById("displayDate").textContent = "—";
+    totals.textContent = "Totals: 0 ha → 0 kg";
+    return;
   }
 
-  function saveJobs(jobs){
-    localStorage.setItem('jobs', JSON.stringify(jobs));
-  }
+  document.getElementById("displayDate").textContent = jobs[0].date;
 
-  // Format helpers
-  function fmtFixed(n, decimals=0){
-    if(isNaN(n)) return n;
-    return Number(n).toLocaleString(undefined, {minimumFractionDigits: decimals, maximumFractionDigits: decimals});
-  }
+  let totalHa = 0;
+  let totalKg = 0;
 
-  function render(){
-    const jobs = loadJobs();
-    screenBody.innerHTML = '';
-    printBody.innerHTML = '';
+  jobs.forEach((j,i)=>{
+    let row = document.createElement("tr");
+    row.innerHTML = `
+      <td>${j.field}</td>
+      <td>${j.blend}</td>
+      <td>${fmt(j.rate)} <span class="unit">kg/ha</span></td>
+      <td>${fmt(j.size)} <span class="unit">ha</span></td>
+      <td>${fmt(j.total)} <span class="unit">kg</span></td>
+      <td>
+        <button class="btn btn-edit" onclick="editJob(${i})">Edit</button>
+        <button class="btn btn-del" onclick="deleteJob(${i})">Delete</button>
+      </td>`;
+    sBody.appendChild(row);
 
-    if(jobs.length === 0){
-      displayDate.textContent = '—';
-      totalsLine.textContent = 'Totals: 0 ha — 0 kg';
-      return;
-    }
+    let prow = document.createElement("tr");
+    prow.innerHTML = `
+      <td>${j.field}</td>
+      <td>${j.blend}</td>
+      <td>${fmt(j.rate)} kg/ha</td>
+      <td>${fmt(j.size)} ha</td>
+      <td>${fmt(j.total)} kg</td>`;
+    pBody.appendChild(prow);
 
-    // Show top date as earliest job date or today's
-    // For printing we put the day of the first job or today's.
-    const displayDay = jobs[0].date || new Date().toISOString().slice(0,10);
-    displayDate.textContent = displayDay;
-
-    let totalHa = 0;
-    let totalKg = 0;
-
-    jobs.forEach((job, idx) => {
-      const date = job.date || '';
-      const field = job.field || '';
-      const blend = job.blend || '';
-      const rate = Number(job.rate) || 0;
-      const size = Number(job.size) || 0;
-      const total = Number(job.total) || Math.round(rate*size*100)/100;
-
-      totalHa += size;
-      totalKg += total;
-
-      // Screen row with actions
-      const tr = document.createElement('tr');
-
-      tr.innerHTML = `
-        <td>${date}</td>
-        <td>${escapeHtml(field)}</td>
-        <td>${escapeHtml(blend)}</td>
-        <td>${fmtFixed(rate)} <span class="unit">kg/ha</span></td>
-        <td>${fmtFixed(size, (size%1?1:0))} <span class="unit">ha</span></td>
-        <td>${fmtFixed(total)} <span class="unit">kg</span></td>
-        <td>
-          <button class="btn btn-edit" data-idx="${idx}">Edit</button>
-          <button class="btn btn-del" data-idx="${idx}" style="margin-left:8px">Delete</button>
-        </td>`;
-
-      screenBody.appendChild(tr);
-
-      // Print row (no actions)
-      const pr = document.createElement('tr');
-      pr.innerHTML = `
-        <td>${date}</td>
-        <td>${escapeHtml(field)}</td>
-        <td>${escapeHtml(blend)}</td>
-        <td style="text-align:right">${fmtFixed(rate)} kg/ha</td>
-        <td style="text-align:right">${fmtFixed(size,(size%1?1:0))} ha</td>
-        <td style="text-align:right">${fmtFixed(total)} kg</td>`;
-      printBody.appendChild(pr);
-    });
-
-    totalsLine.textContent = 'Totals: ' + fmtFixed(totalHa, 2) + ' ha — ' + fmtFixed(totalKg, 2) + ' kg';
-
-    // wire actions
-    Array.from(document.querySelectorAll('.btn-del')).forEach(btn => {
-      btn.onclick = function(){
-        const idx = Number(this.dataset.idx);
-        if(!confirm('Delete this job?')) return;
-        const jobs = loadJobs();
-        jobs.splice(idx,1);
-        saveJobs(jobs);
-        render();
-      };
-    });
-
-    Array.from(document.querySelectorAll('.btn-edit')).forEach(btn => {
-      btn.onclick = function(){
-        const idx = Number(this.dataset.idx);
-        const jobs = loadJobs();
-        const job = jobs[idx];
-        if(!job) return;
-        // Quick edit via prompt for convenience (small, fast)
-        const newField = prompt('Field ID', job.field);
-        if(newField === null) return;
-        const newSize = prompt('Size (ha)', job.size);
-        if(newSize === null) return;
-        const newRate = prompt('Rate (kg/ha)', job.rate);
-        if(newRate === null) return;
-        // Update
-        job.field = newField;
-        job.size = Number(newSize) || 0;
-        job.rate = Number(newRate) || 0;
-        job.total = Math.round(job.rate * job.size * 100)/100;
-        jobs[idx] = job;
-        saveJobs(jobs);
-        render();
-      };
-    });
-  }
-
-  // CSV export
-  exportCsvBtn.addEventListener('click', function(){
-    const jobs = loadJobs();
-    if(jobs.length === 0){ alert('No jobs to export'); return; }
-    const rows = [['Date','Field','Blend','Rate (kg/ha)','Size (ha)','Total (kg)']];
-    jobs.forEach(j => rows.push([j.date, j.field, j.blend, j.rate, j.size, j.total]));
-    const csv = rows.map(r => r.map(cell => `"${String(cell).replace(/"/g,'""')}"`).join(',')).join('\n');
-    const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'daily-report.csv';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    totalHa += Number(j.size);
+    totalKg += Number(j.total);
   });
 
-  // Print button - prepare and call window.print()
-  printBtn.addEventListener('click', function(){
-    // Ensure print table is up-to-date
-    render();
-    // Small delay for rendering
-    setTimeout(() => window.print(), 200);
-  });
+  totals.textContent = `Totals: ${fmt(totalHa)} ha → ${fmt(totalKg)} kg`;
+}
 
-  // simple HTML escape
-  function escapeHtml(s){
-    if(s === undefined || s === null) return '';
-    return String(s).replace(/[&<>"']/g, function(m){
-      return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[m];
-    });
-  }
-
-  // initial render
+function deleteJob(i){
+  let j = loadJobs();
+  j.splice(i,1);
+  saveJobs(j);
   render();
+}
 
-  // optional: update on storage change (if main entry page saves there)
-  window.addEventListener('storage', function(e){
-    if(e.key === 'jobs') render();
-  });
+function editJob(i){
+  let j = loadJobs();
+  let item = j[i];
+  if(!item) return;
 
-})();
+  let field = prompt("Field ID:", item.field); if(field===null) return;
+  let size = prompt("Field size (ha):", item.size); if(size===null) return;
+  let rate = prompt("Rate (kg/ha):", item.rate); if(rate===null) return;
+
+  item.field = field;
+  item.size = Number(size);
+  item.rate = Number(rate);
+  item.total = item.size * item.rate;
+
+  j[i] = item;
+  saveJobs(j);
+  render();
+}
+
+render();
 </script>
 
 </body>
