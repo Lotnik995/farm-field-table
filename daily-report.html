@@ -1,17 +1,218 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Daily Work</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Daily Report</title>
+
+<!-- GOOGLE FONT -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+
+<style>
+    body {
+        font-family: "Inter", sans-serif;
+        margin: 0;
+        padding: 20px;
+        background: #f5f5f7;
+    }
+
+    h1 {
+        text-align: center;
+        font-size: 32px;
+        margin-bottom: 25px;
+        font-weight: 600;
+    }
+
+    .nav {
+        text-align: center;
+        margin-bottom: 20px;
+        font-size: 16px;
+    }
+
+    .nav a {
+        margin: 0 10px;
+        color: #0077cc;
+        text-decoration: none;
+        font-weight: 600;
+    }
+
+    .report-container {
+        max-width: 900px;
+        margin: auto;
+        background: white;
+        padding: 25px;
+        border-radius: 12px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+    }
+
+    th {
+        background: #0077cc;
+        color: white;
+        padding: 10px;
+        font-weight: 600;
+    }
+
+    td {
+        padding: 10px;
+        border-bottom: 1px solid #ddd;
+        font-size: 15px;
+    }
+
+    tr:hover {
+        background: #f1f7ff;
+    }
+
+    .actions button {
+        padding: 6px 10px;
+        margin-right: 6px;
+        border-radius: 6px;
+        border: none;
+        cursor: pointer;
+        font-size: 13px;
+    }
+
+    .edit-btn {
+        background: #f7b731;
+        color: white;
+    }
+
+    .delete-btn {
+        background: #ff3b30;
+        color: white;
+    }
+
+    .top-buttons {
+        text-align: center;
+        margin-top: 15px;
+    }
+
+    .top-buttons button {
+        padding: 8px 16px;
+        margin: 5px;
+        border-radius: 6px;
+        border: none;
+        background: #0077cc;
+        color: white;
+        cursor: pointer;
+        font-size: 15px;
+    }
+
+    /* PRINT MODE */
+    @media print {
+        body {
+            background: white;
+        }
+        .nav, .top-buttons, .actions {
+            display: none;
+        }
+        .report-container {
+            box-shadow: none;
+            max-width: 100%;
+            padding: 0;
+        }
+        h1 {
+            margin-top: 0;
+        }
+    }
+</style>
+
 </head>
 <body>
 
-<h1>Daily Work</h1>
+<h1>Daily Report</h1>
 
-<div id="jobs"></div>
+<div class="nav">
+    <a href="index.html">Daily Work</a> |
+    <a href="daily-report.html">Daily Report</a>
+</div>
 
-<button onclick="exportCSV()">Export CSV</button>
+<div class="report-container">
 
-<script src="script.js"></script>
+<table id="reportTable">
+    <thead>
+        <tr>
+            <th>Date</th>
+            <th>Field</th>
+            <th>Blend</th>
+            <th>Rate (kg/ha)</th>
+            <th>Size (ha)</th>
+            <th>Total (kg)</th>
+            <th class="actions">Actions</th>
+        </tr>
+    </thead>
+    <tbody></tbody>
+</table>
+
+<div class="top-buttons">
+    <button onclick="window.print()">Print</button>
+    <button onclick="exportCSV()">Export CSV</button>
+</div>
+
+</div>
+
+<script>
+function loadReport() {
+    const data = JSON.parse(localStorage.getItem("jobs") || "[]");
+    const tbody = document.querySelector("#reportTable tbody");
+    tbody.innerHTML = "";
+
+    data.forEach((job, index) => {
+        const tr = document.createElement("tr");
+
+        tr.innerHTML = `
+            <td>${job.date}</td>
+            <td>${job.field}</td>
+            <td>${job.blend}</td>
+            <td>${job.rate}</td>
+            <td>${job.size}</td>
+            <td>${job.total}</td>
+            <td class="actions">
+                <button class="edit-btn" onclick="editJob(${index})">Edit</button>
+                <button class="delete-btn" onclick="deleteJob(${index})">Delete</button>
+            </td>
+        `;
+
+        tbody.appendChild(tr);
+    });
+}
+
+function deleteJob(index) {
+    if (!confirm("Delete this entry?")) return;
+    const data = JSON.parse(localStorage.getItem("jobs") || "[]");
+    data.splice(index, 1);
+    localStorage.setItem("jobs", JSON.stringify(data));
+    loadReport();
+}
+
+function editJob(index) {
+    const job = JSON.parse(localStorage.getItem("jobs"))[index];
+    alert("Edit in progress – I can also build full edit form for you.");
+}
+
+function exportCSV() {
+    const rows = [["Date","Field","Blend","Rate","Size","Total"]];
+    const data = JSON.parse(localStorage.getItem("jobs") || "[]");
+
+    data.forEach(j => rows.push([j.date,j.field,j.blend,j.rate,j.size,j.total]));
+
+    let csv = rows.map(r => r.join(",")).join("\n");
+    let blob = new Blob([csv], {type:"text/csv"});
+    let url = URL.createObjectURL(blob);
+
+    let a = document.createElement("a");
+    a.href = url;
+    a.download = "daily-report.csv";
+    a.click();
+}
+
+loadReport();
+</script>
 
 </body>
 </html>
