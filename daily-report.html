@@ -110,7 +110,12 @@
     let totalHa = 0, totalKg = 0;
 
     jobs.forEach((j, idx)=>{
-      const rate = Number(j.rate)||0;
+      let rateText = "";
+if (job.rateType === "nsensor") {
+    rateText = "N-SENSOR";
+} else {
+    rateText = `${fmt(job.rate)} kg/ha`;
+}
       const size = Number(j.size)||0;
       const total = Number(j.total) || rate*size;
       totalHa += size;
