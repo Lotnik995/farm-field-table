@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Daily Work</title>
+
+<!-- PWA -->
+<link rel="manifest" href="/farm-field-table/manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="apple-touch-icon" href="/farm-field-table/icons/apple-icon-180.png">
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+
+<style>
+    body { margin:0; padding:0; font-family:Inter,system-ui; background:#000; display:flex; justify-content:center; align-items:flex-start; min-height:100vh; padding:24px; }
+    .card{ width:100%; max-width:520px; padding:28px; border-radius:20px; background:rgba(255,255,255,0.06); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); border:1px solid rgba(255,255,255,0.12); color:#fff; box-shadow:0 8px 30px rgba(0,0,0,0.6); }
+    h1{ text-align:center; margin:0 0 12px 0; font-size:26px; font-weight:600; color:#fff; }
+    .nav{ text-align:center; margin-bottom:12px; }
+    .nav a{ color:#7fc7ff; text-decoration:none; font-weight:600; margin:0 8px; }
+    label{ display:block; margin-top:12px; font-weight:600; color:#e6eef8; }
+    input{ width:100%; padding:12px; margin-top:6px; border-radius:12px; border:none; background:rgba(255,255,255,0.12); color:#fff; font-size:15px; outline:none; }
+    button{ margin-top:18px; width:100%; padding:12px; border-radius:12px; border:none; background:#4ea3ff; color:#000; font-weight:700; font-size:16px; cursor:pointer; }
+    .result{ margin-top:14px; padding:10px; border-radius:10px; background:rgba(255,255,255,0.08); color:#fff; display:none; text-align:center; font-weight:600; }
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>Daily Work</h1>
+  <div class="nav"><a href="index.html">Daily Work</a> | <a href="daily-report.html">Daily Report</a></div>
+
+  <label>Date</label>
+  <input type="date" id="date">
+
+  <label>Field</label>
+  <input type="text" id="field" placeholder="Field ID (e.g. R-05)">
+
+  <label>Blend</label>
+  <input type="text" id="blend" placeholder="Blend name">
+
+  <label>Rate (kg/ha)</label>
+  <input type="number" id="rate" placeholder="e.g. 250" step="0.1">
+
+  <label>Size (ha)</label>
+  <input type="number" id="size" placeholder="e.g. 9" step="0.1">
+
+  <button id="saveJobBtn">Save Work</button>
+  <div class="result" id="result"></div>
+</div>
+
+<script src="app.js"></script>
+<script>
+// auto-fill date to today (ISO)
+document.addEventListener('DOMContentLoaded', function(){
+  const today = new Date().toISOString().slice(0,10);
+  const dateEl = document.getElementById('date');
+  if(dateEl) dateEl.value = today;
+
+  // prefill last used values if present
+  try {
+    const lf = localStorage.getItem('lastField');
+    const lb = localStorage.getItem('lastBlend');
+    const lr = localStorage.getItem('lastRate');
+    if(lf) document.getElementById('field').value = lf;
+    if(lb) document.getElementById('blend').value = lb;
+    if(lr) document.getElementById('rate').value = lr;
+  } catch(e){}
+
+  // wire button
+  const btn = document.getElementById('saveJobBtn');
+  btn.addEventListener('click', function(){
+    if(typeof createJobFromForm !== 'function'){
+      alert('App error: createJobFromForm missing');
+      return;
+    }
+    const job = createJobFromForm();
+    if(!job) return;
+    addJob(job);
+    // feedback
+    const res = document.getElementById('result');
+    res.style.display = 'block';
+    res.textContent = `Saved: ${job.field} — ${job.total} kg`;
+    setTimeout(()=> res.style.display='none', 2200);
+    // clear size only
+    document.getElementById('size').value = '';
+  });
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Daily Report</title>
+
+<link rel="manifest" href="/farm-field-table/manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="apple-touch-icon" href="/farm-field-table/icons/apple-icon-180.png">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+<style>
+:root{ --blue:#0b76c3; --muted:#6b7280; --yellow:#ffdd3c; }
+*{box-sizing:border-box;font-family:Inter,system-ui,-apple-system;}
+body{margin:0;background:#f3f4f6;color:#111;}
+.page{max-width:1100px;margin:24px auto;padding:16px;}
+.card{background:#fff;border-radius:12px;padding:14px;box-shadow:0 8px 24px rgba(0,0,0,0.06);}
+.controls{display:flex;gap:8px;align-items:center;justify-content:center;margin-bottom:10px;flex-wrap:wrap;}
+.controls input[type='date']{padding:8px;border-radius:8px;border:1px solid #ddd;}
+.btn{background:var(--blue);color:#fff;border:none;padding:8px 12px;border-radius:8px;cursor:pointer;font-weight:700;}
+.btn.ghost{background:#fff;color:var(--blue);border:1px solid #ddd;}
+.table-wrap{overflow:auto;border-radius:10px;}
+table{width:100%;border-collapse:collapse;font-size:15px;}
+thead th{background:#0b76c3;color:#fff;padding:10px;text-align:left;}
+tbody td{padding:10px;border-bottom:1px solid #eee;vertical-align:middle;}
+.unit{color:var(--muted);font-size:12px;margin-left:6px;}
+.actions{display:flex;gap:8px;justify-content:flex-end;}
+.action-btn{border:none;padding:6px 10px;border-radius:8px;cursor:pointer;font-weight:700;}
+.edit{background:#f2b705;color:#111}
+.del{background:#ff5b56;color:#fff}
+.totals{margin-top:12px;font-weight:700;display:flex;justify-content:space-between;}
+@media print{
+  .controls,.action-btn,.actions,.btn{display:none!important}
+  .card{box-shadow:none;padding:0}
+  .print-table{display:block!important;margin-top:10px}
+  table{width:100%;border-collapse:collapse;font-size:11px}
+  thead.print-head th{background:var(--yellow);color:#000;padding:6px;border:1px solid #000}
+  .print-table td{border:1px solid #000;padding:6px}
+  @page{size:A4 portrait;margin:10mm}
+}
+.print-table{display:none}
+</style>
+</head>
+<body>
+<div class="page">
+  <header><h1 style="text-align:center">Daily Report</h1></header>
+  <div class="card">
+    <div class="controls">
+      <button id="prevBtn" class="btn ghost">◀ Prev</button>
+      <input id="reportDate" type="date">
+      <button id="nextBtn" class="btn ghost">Next ▶</button>
+      <div style="flex:1"></div>
+      <button id="printBtn" class="btn">Print</button>
+      <button id="csvBtn" class="btn ghost">Export CSV</button>
+    </div>
+
+    <div class="table-wrap screen-table">
+      <table aria-label="Daily report">
+        <thead><tr><th style="width:16%">Field</th><th style="width:28%">Blend</th><th style="width:12%">Rate</th><th style="width:12%">Size</th><th style="width:16%">Total</th><th style="width:16%">Actions</th></tr></thead>
+        <tbody id="screenBody"></tbody>
+      </table>
+    </div>
+
+    <div class="print-table">
+      <table aria-hidden="true">
+        <thead class="print-head"><tr><th style="width:20%">Field ID</th><th style="width:30%">Fert Blend</th><th style="width:15%">Rate (kg/ha)</th><th style="width:15%">Field Size (ha)</th><th style="width:20%">Total KG</th></tr></thead>
+        <tbody id="printBody"></tbody>
+      </table>
+    </div>
+
+    <div id="totalsLine" style="margin-top:12px;font-weight:700;"></div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+<script>
+(function(){
+  const reportDate = document.getElementById('reportDate');
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  const screenBody = document.getElementById('screenBody');
+  const printBody = document.getElementById('printBody');
+  const totalsLine = document.getElementById('totalsLine');
+  const printBtn = document.getElementById('printBtn');
+  const csvBtn = document.getElementById('csvBtn');
+
+  function todayISO(){ return new Date().toISOString().slice(0,10); }
+  reportDate.value = todayISO();
+
+  function fmt(n,d=0){ if(isNaN(n)) return n; return Number(n).toLocaleString(undefined,{minimumFractionDigits:d,maximumFractionDigits:d}); }
+  function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[m]); }
+
+  function renderForDate(){
+    const sel = reportDate.value;
+    const jobs = (window.getJobsForDate ? window.getJobsForDate(sel) : []).slice();
+    screenBody.innerHTML=''; printBody.innerHTML='';
+    let totalHa=0,totalKg=0;
+    jobs.forEach(job=>{
+      const rate = Number(job.rate)||0; const size = Number(job.size)||0; const total = Number(job.total)||Math.round(rate*size*100)/100;
+      totalHa += size; totalKg += total;
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>${escapeHtml(job.field)}</td><td>${escapeHtml(job.blend)}</td><td>${fmt(rate)} <span class="unit">kg/ha</span></td><td>${fmt(size,(size%1?1:0))} <span class="unit">ha</span></td><td>${fmt(total)} <span class="unit">kg</span></td><td class="actions"><button class="action-btn edit" data-id="${job.id}">Edit</button><button class="action-btn del" data-id="${job.id}">Delete</button></td>`;
+      screenBody.appendChild(tr);
+      const pr = document.createElement('tr');
+      pr.innerHTML = `<td>${escapeHtml(job.field)}</td><td>${escapeHtml(job.blend)}</td><td style="text-align:right">${fmt(rate)} kg/ha</td><td style="text-align:right">${fmt(size,(size%1?1:0))} ha</td><td style="text-align:right">${fmt(total)} kg</td>`;
+      printBody.appendChild(pr);
+    });
+    totalsLine.textContent = 'Totals: '+fmt(totalHa,2)+' ha — '+fmt(totalKg,2)+' kg';
+    // wire actions
+    document.querySelectorAll('.action-btn.del').forEach(b=> b.onclick = ()=>{ if(!confirm('Delete this row?')) return; const id = b.dataset.id; window.deleteJobById(id); renderForDate(); });
+    document.querySelectorAll('.action-btn.edit').forEach(b=> b.onclick = ()=>{
+      const id = b.dataset.id; const jobs = window.loadJobs(); const idx = jobs.findIndex(x=>x.id===id); if(idx===-1) return;
+      const row = jobs[idx];
+      const nf = prompt('Field ID', row.field); if(nf===null) return;
+      const ns = prompt('Size (ha)', row.size); if(ns===null) return;
+      const nr = prompt('Rate (kg/ha)', row.rate); if(nr===null) return;
+      row.field = nf; row.size = Number(ns)||0; row.rate = Number(nr)||0; row.total = Math.round(row.rate*row.size*100)/100;
+      window.updateJob(row); renderForDate();
+    });
+  }
+
+  prevBtn.onclick = ()=>{ const d = new Date(reportDate.value); d.setDate(d.getDate()-1); reportDate.value = d.toISOString().slice(0,10); renderForDate(); };
+  nextBtn.onclick = ()=>{ const d = new Date(reportDate.value); d.setDate(d.getDate()+1); reportDate.value = d.toISOString().slice(0,10); renderForDate(); };
+  reportDate.onchange = renderForDate;
+  printBtn.onclick = ()=> setTimeout(()=>window.print(),120);
+  csvBtn.onclick = ()=>{ const rows = window.getJobsForDate(reportDate.value); if(!rows.length){ alert('No rows'); return;} window.exportToCSV(rows); };
+  window.addEventListener('storage', renderForDate);
+  renderForDate();
+})();</script>
+</body>
+</html>
