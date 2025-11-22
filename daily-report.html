@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Daily Report</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+    body {
+        font-family: "Segoe UI", Arial, sans-serif;
+        background: #f3f3f3;
+        margin: 0;
+        padding: 20px;
+        text-align: center;
+    }
+
+    h1 {
+        margin-bottom: 10px;
+        font-size: 32px;
+    }
+
+    .nav {
+        margin-bottom: 20px;
+    }
+    .nav a {
+        margin: 0 10px;
+        text-decoration: none;
+        font-weight: bold;
+        color: #0066cc;
+    }
+
+    .container {
+        max-width: 1000px;
+        margin: auto;
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 25px;
+        font-size: 16px;
+    }
+
+    th {
+        background: #007acc;
+        color: white;
+        padding: 14px;
+        font-size: 16px;
+    }
+
+    td {
+        padding: 12px;
+        border-bottom: 1px solid #ddd;
+    }
+
+    /* Units inside row */
+    .unit {
+        color: #555;
+        font-size: 13px;
+        display: block;
+        margin-top: 3px;
+    }
+
+    /* Buttons */
+    .btn {
+        padding: 6px 14px;
+        border: none;
+        border-radius: 8px;
+        color: white;
+        cursor: pointer;
+        font-size: 14px;
+    }
+    .editBtn { background: #f1b400; }
+    .deleteBtn { background: #e74c3c; }
+
+    .actionColumn {
+        white-space: nowrap;
+    }
+
+    /* Print-friendly styling */
+    @media print {
+        .nav, .btn, #exportCsvBtn, #printBtn {
+            display: none !important;
+        }
+        body {
+            background: white;
+        }
+        .container {
+            box-shadow: none;
+            border: none;
+        }
+    }
+
+    /* Mobile responsive */
+    @media (max-width: 600px) {
+        table, thead, tbody, tr, th, td {
+            font-size: 13px;
+        }
+        .btn {
+            padding: 4px 10px;
+            font-size: 12px;
+        }
+    }
+</style>
+
+</head>
+<body>
+
+<h1>Daily Report</h1>
+
+<div class="nav">
+    <a href="index.html">Daily Work</a> |
+    <a href="daily-report.html">Daily Report</a>
+</div>
+
+<div class="container">
+    <table id="reportTable">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Field</th>
+                <th>Blend</th>
+                <th>Rate (kg/ha)</th>
+                <th>Size (ha)</th>
+                <th>Total (kg)</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody id="reportBody"></tbody>
+    </table>
+
+    <button id="printBtn" class="btn" style="background:#007acc;">Print</button>
+    <button id="exportCsvBtn" class="btn" style="background:#444;">Export CSV</button>
+</div>
+
+<script>
+    function loadReport() {
+        const data = JSON.parse(localStorage.getItem("dailyReports") || "[]");
+        const body = document.getElementById("reportBody");
+        body.innerHTML = "";
+
+        data.forEach((row, index) => {
+            const tr = document.createElement("tr");
+
+            tr.innerHTML = `
+                <td>${row.date}</td>
+                <td>${row.field}</td>
+                <td>${row.blend}</td>
+
+                <td>
+                    ${row.rate}
+                    <span class="unit">kg/ha</span>
+                </td>
+
+                <td>
+                    ${row.size}
+                    <span class="unit">ha</span>
+                </td>
+
+                <td>
+                    ${row.total}
+                    <span class="unit">kg</span>
+                </td>
+
+                <td class="actionColumn">
+                    <button class="btn editBtn" onclick="editEntry(${index})">Edit</button>
+                    <button class="btn deleteBtn" onclick="deleteEntry(${index})">Delete</button>
+                </td>
+            `;
+
+            body.appendChild(tr);
+        });
+    }
+
+    function deleteEntry(index) {
+        const data = JSON.parse(localStorage.getItem("dailyReports") || "[]");
+        data.splice(index, 1);
+        localStorage.setItem("dailyReports", JSON.stringify(data));
+        loadReport();
+    }
+
+    function editEntry(index) {
+        alert("Edit popup coming next — still linking it.");
+    }
+
+    document.getElementById("printBtn").onclick = () => window.print();
+
+    document.getElementById("exportCsvBtn").onclick = () => {
+        const data = JSON.parse(localStorage.getItem("dailyReports") || "[]");
+        let csv = "Date,Field,Blend,Rate,Size,Total\n";
+        data.forEach(r => csv += `${r.date},${r.field},${r.blend},${r.rate},${r.size},${r.total}\n`);
+        const blob = new Blob([csv], { type: "text/csv" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "daily-report.csv";
+        a.click();
+    };
+
+    loadReport();
+</script>
+
+</body>
+</html>
