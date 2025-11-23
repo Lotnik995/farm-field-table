@@ -8,7 +8,30 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<script type="module">
+  // Import the functions you need from the SDKs you need
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-analytics.js";
+  // TODO: Add SDKs for Firebase products that you want to use
+  // https://firebase.google.com/docs/web/setup#available-libraries
+
+  // Your web app's Firebase configuration
+  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+  const firebaseConfig = {
+    apiKey: "AIzaSyBPnsIszxeLpmp4p2YznUdlF9Wo1CoO7v4",
+    authDomain: "farm-field-table.firebaseapp.com",
+    projectId: "farm-field-table",
+    storageBucket: "farm-field-table.firebasestorage.app",
+    messagingSenderId: "843181685702",
+    appId: "1:843181685702:web:204f90632e19ab56bf90c7",
+    measurementId: "G-EJRQ0LKLD7"
+  };
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
+</script>
+  <body>
   <div class="container">
     <header>
       <h1>Daily Work</h1>
