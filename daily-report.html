@@ -1,12 +1,13 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Daily Report</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Daily Report</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
 </head>
+
 <body>
 <div class="container">
   <header>
@@ -18,6 +19,7 @@
   </header>
 
   <div class="card">
+
     <!-- controls -->
     <div style="display:flex;gap:12px;align-items:center;justify-content:center;margin-bottom:12px;flex-wrap:wrap">
       <button id="prevDay" class="btn">◀ Prev</button>
@@ -38,7 +40,7 @@
             <th>Date</th>
             <th>Field</th>
             <th>Blend</th>
-            <th>Rate (kg/ha)</th>
+            <th>Rate</th>
             <th>Size (ha)</th>
             <th>Total (kg)</th>
             <th>Actions</th>
@@ -67,7 +69,7 @@
             <tr>
               <th>Field ID</th>
               <th>Fert Blend</th>
-              <th>Rate (kg/ha)</th>
+              <th>Rate</th>
               <th>Field Size (ha)</th>
               <th>Total KG</th>
             </tr>
@@ -79,13 +81,16 @@
       </div>
     </div>
   </div>
+
 </div>
 
+<!-- LOAD FarmApp FIRST -->
 <script src="app.js"></script>
 
 <script>
 (function(){
 
+  // elements
   const reportDateEl = document.getElementById("reportDate");
   const screenBody = document.getElementById("screenBody");
   const printBody  = document.getElementById("printBody");
@@ -93,10 +98,10 @@
   const printTotals= document.getElementById("printTotals");
   const printDateLabel = document.getElementById("printDateLabel");
 
-  function fmt(n,d=0){ 
-    return isNaN(n) ? n : Number(n).toLocaleString(undefined,{minimumFractionDigits:d,maximumFractionDigits:d}); 
+  // helper
+  function fmt(n){
+    return isNaN(n) ? n : Number(n).toLocaleString();
   }
-
   function escape(s){
     return String(s||"").replace(/[&<>"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[m]));
   }
@@ -104,6 +109,7 @@
   function isoToday(){ return new Date().toISOString().slice(0,10); }
   reportDateEl.value = isoToday();
 
+  // RENDER FUNCTION ----------------------------------
   function renderForDate(d){
 
     screenBody.innerHTML = "";
@@ -151,9 +157,9 @@
         <tr>
           <td>${escape(job.field)}</td>
           <td>${escape(job.blend)}</td>
-          <td style="text-align:right">${rateText}</td>
-          <td style="text-align:right">${fmt(job.size)} ha</td>
-          <td style="text-align:right">${fmt(job.total)} kg</td>
+          <td>${rateText}</td>
+          <td>${fmt(job.size)} ha</td>
+          <td>${fmt(job.total)} kg</td>
         </tr>`;
     });
 
@@ -164,12 +170,62 @@
       `Totals: ${fmt(totalHa)} ha — ${fmt(totalKg)} kg`;
   }
 
+  // navigation
   prevDay.onclick = function(){
     const d = new Date(reportDateEl.value);
     d.setDate(d.getDate()-1);
     reportDateEl.value = d.toISOString().slice(0,10);
     renderForDate(reportDateEl.value);
   };
+
+  // Enable EDIT + DELETE buttons
+  document.addEventListener("click", function(e){
+    
+    // DELETE
+    if (e.target.classList.contains("btn-del")) {
+      const id = e.target.dataset.id;
+      if (!confirm("Delete this job?")) return;
+      FarmApp.deleteJobById(id);
+      renderForDate(reportDateEl.value);
+    }
+
+    // EDIT
+    if (e.target.classList.contains("btn-edit")) {
+      const id = e.target.dataset.id;
+      const jobs = FarmApp.loadJobs();
+      const job = jobs.find(j => j.id === id);
+      if (!job) return;
+
+      const nf = prompt("Field:", job.field); if (nf === null) return;
+      const nb = prompt("Blend:", job.blend); if (nb === null) return;
+
+      // If N-Sensor, skip rate
+      let nr = job.rate;
+      if (job.rateType !== "nsensor") {
+        nr = prompt("Rate (kg/ha):", job.rate);
+        if (nr === null) return;
+      }
+
+      const ns = prompt("Size (ha):", job.size); if (ns === null) return;
+
+      // Update job
+      job.field = nf;
+      job.blend = nb;
+      job.size = Number(ns) || 0;
+
+      if (job.rateType === "nsensor") {
+        job.total = Number(prompt("Total KG:", job.total)) || 0;
+        job.rate = 0;
+      } else {
+        job.rate = Number(nr) || 0;
+        job.total = job.rate * job.size;
+      }
+
+      FarmApp.updateJob(job);
+      renderForDate(reportDateEl.value);
+    }
+
+  });
 
   nextDay.onclick = function(){
     const d = new Date(reportDateEl.value);
@@ -188,6 +244,7 @@
   csvBtn.onclick = () =>
     FarmApp.exportCsvForDate(reportDateEl.value);
 
+  // INITIAL DRAW
   renderForDate(reportDateEl.value);
 
 })();
